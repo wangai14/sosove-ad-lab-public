@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>SOSOVE Prompt Atelier · 通用商品视频提示词</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/fashion-prompts.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/fashion-prompts.js"></script>
+  </head>
+  <body>
+    <div class="paper-grain" aria-hidden="true"></div>
+    <header class="atelier-header">
+      <a class="atelier-brand" href="/" aria-label="返回 SOSOVE 智能创作中心">
+        <span class="brand-seal">S</span>
+        <span>
+          <strong>SOSOVE Prompt Atelier</strong>
+          <small>商品から映像の言葉へ</small>
+        </span>
+      </a>
+      <nav class="header-nav" aria-label="页面导航">
+        <a href="/">创作中心</a>
+        <a href="/ad-forge.html">Ad Lab</a>
+        <a class="is-active" href="/fashion-prompts.html">商品提示词</a>
+      </nav>
+      <div class="header-account">
+        <span><i></i><b data-auth-username>登录中</b></span>
+        <button type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro-band" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow">ANY PRODUCT · SEEDANCE PROMPT WORKBENCH</p>
+          <h1 id="page-title">任何商品，都有自己的<br><em>镜头证明方式。</em></h1>
+          <p>上传任意商品参考图，系统自动识别品类并切换动作、机位与场景策略；同一批提示词在钩子、任务和第一镜头上保持不同。</p>
+        </div>
+        <div class="intro-index" aria-label="工作流程">
+          <span><b>01</b> 商品档案</span>
+          <span><b>02</b> 参考角色</span>
+          <span><b>03</b> 提示词包</span>
+        </div>
+        <aside class="local-note">
+          <span>AI-DIRECTED</span>
+          <strong>每次按当前新品调用 AI 从零生成</strong>
+          <p>点击主生成会发送当前商品档案与参考图并消耗 Token；复制和下载 TXT 不调用模型。</p>
+        </aside>
+      </section>
+
+      <section class="ai-model-panel" id="ai-model-panel" aria-labelledby="ai-model-title">
+        <header class="ai-model-heading">
+          <div class="ai-model-mark" aria-hidden="true"><span>AI</span><small>VISION</small></div>
+          <div>
+            <p class="eyebrow">VISION + PROMPT DIRECTOR</p>
+            <h2 id="ai-model-title">让模型按每件新品重新导演。</h2>
+            <p>“AI识别商品”“AI生成提示词包”和“AI再次精修”都会调用模型并消耗 Token；复制和下载 TXT 不消耗。</p>
+          </div>
+          <span class="model-status-pill" id="ai-model-status" data-state="idle"><i></i>读取配置</span>
+        </header>
+
+        <div class="ai-config-grid">
+          <label class="ai-config-field ai-config-endpoint">
+            <span>API 节点 <small>OPENAI-COMPATIBLE</small></span>
+            <input id="ai-config-base-url" type="url" autocomplete="off" placeholder="https://your-endpoint.example/v1">
+          </label>
+          <label class="ai-config-field">
+            <span>识别 / 生成模型</span>
+            <input id="ai-config-model" type="text" autocomplete="off" maxlength="200" placeholder="OpenAI 兼容模型 ID">
+          </label>
+          <label class="ai-config-field">
+            <span>API Key <small id="ai-key-preview">尚未配置</small></span>
+            <input id="ai-config-key" type="password" autocomplete="new-password" placeholder="留空则保留已经保存的 Key">
+          </label>
+          <div class="ai-config-actions">
+            <button class="test-model-button" id="test-ai-config-button" type="button">
+              <span>测试模型连接</span><small>真实试调用 · 极少量 Token</small>
+            </button>
+            <button class="save-model-button" id="save-ai-config-button" type="button">
+              <span>保存模型配置</span><small>仅保存，不自动测试</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-config-test-result" id="ai-config-test-result" data-state="idle" aria-live="polite">
+          <i aria-hidden="true"></i>
+          <div>
+            <strong id="ai-config-test-state">模型尚未测试</strong>
+            <small id="ai-config-test-detail">点击“测试模型连接”会发送一个极短文本请求；不会上传商品图片。</small>
+          </div>
+          <span>LIVE PROBE</span>
+        </div>
+
+        <div class="endpoint-warning" id="endpoint-warning" hidden>
+          <strong>明文 HTTP 节点</strong>
+          <span>保存配置不会联网；调用 AI 时，API Key 与对应图片或提示词文本将通过未加密连接发送到该节点。</span>
+        </div>
+
+        <div class="ai-analysis-bar">
+          <div>
+            <span>AI PRODUCT FACT SHEET</span>
+            <strong id="ai-analysis-state">先上传商品参考图，再进行一次识别</strong>
+            <small id="ai-analysis-detail">识别结果会回填左侧表单；不确定结构保持“未确认”。</small>
+          </div>
+          <button class="analyze-product-button" id="analyze-product-button" type="button" disabled>
+            <span>AI识别商品</span><b>一次调用</b>
+          </button>
+        </div>
+
+        <section class="ai-review-panel" id="ai-review-panel" aria-labelledby="ai-review-title" hidden>
+          <header>
+            <div>
+              <span>HUMAN REVIEW REQUIRED</span>
+              <strong id="ai-review-title">逐项确认 AI 商品档案</strong>
+              <small>空白字段默认勾选；已有人工内容默认保留。确认后才会写入左侧表单。</small>
+            </div>
+            <div class="ai-review-actions">
+              <button id="discard-ai-review-button" type="button">放弃建议</button>
+              <button id="apply-ai-review-button" type="button">应用已勾选项</button>
+            </div>
+          </header>
+          <div class="ai-review-list" id="ai-review-list"></div>
+        </section>
+      </section>
+
+      <section class="workbench">
+        <aside class="input-column" aria-label="商品输入区">
+          <div class="section-heading sticky-heading">
+            <div>
+              <span class="section-number">01</span>
+              <h2>商品档案</h2>
+            </div>
+            <div class="heading-actions">
+              <button class="text-button muted" id="reset-product-button" type="button">新商品 / 清空</button>
+              <button class="text-button" id="load-demo-button" type="button">载入数码案例</button>
+            </div>
+          </div>
+
+          <form id="product-form" novalidate>
+            <section class="form-sheet">
+              <label class="field field-wide">
+                <span>商品名称 <small>可留空自动命名</small></span>
+                <input id="product-name" name="productName" type="text" maxlength="80" placeholder="例如：无线降噪耳机 / 保湿唇釉 / 折叠收纳架">
+                <small id="product-name-error" class="field-error" hidden>留空时会根据主颜色和商品品类自动命名。</small>
+              </label>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>商品品类</span>
+                  <select id="category" name="category">
+                    <optgroup label="通用商品">
+                    <option value="数码电子" selected>数码电子</option>
+                    <option value="美妆个护">美妆个护</option>
+                    <option value="食品饮料">食品饮料</option>
+                    <option value="家居日用">家居日用</option>
+                    <option value="厨房用品">厨房用品</option>
+                    <option value="家用电器">家用电器</option>
+                    <option value="鞋包配饰">鞋包配饰</option>
+                    <option value="母婴玩具">母婴玩具</option>
+                    <option value="宠物用品">宠物用品</option>
+                    <option value="运动户外">运动户外</option>
+                    <option value="汽车用品">汽车用品</option>
+                    <option value="其他商品">其他商品</option>
+                    </optgroup>
+                    <optgroup label="服饰细分">
+                    <option value="背带裤连体裤">背带裤 / 连体裤</option>
+                    <option value="长裤">长裤</option>
+                    <option value="半身裙">半身裙</option>
+                    <option value="连衣裙">连衣裙</option>
+                    <option value="上衣">上衣</option>
+                    <option value="外套">外套</option>
+                    <option value="其他女装">其他女装</option>
+                    </optgroup>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>主颜色</span>
+                  <input id="color" name="color" type="text" maxlength="60" placeholder="例如：黑色 / 米白色">
+                </label>
+              </div>
+
+              <label class="field field-wide">
+                <span>外形 / 规格 / 轮廓</span>
+                <input id="silhouette" name="silhouette" type="text" maxlength="160" placeholder="例如：椭圆充电盒，两只入耳式耳机；或宽松直筒版型">
+              </label>
+
+              <label class="field field-wide">
+                <span>主要结构 / 正面细节</span>
+                <textarea id="front-structure" name="frontStructure" rows="3" maxlength="360" placeholder="只写能看见的结构：按键、开口、接口、包装、扣件、口袋……"></textarea>
+              </label>
+
+              <label class="field field-wide">
+                <span>背面 / 底部 / 接口</span>
+                <textarea id="back-structure" name="backStructure" rows="2" maxlength="280" placeholder="没有清楚参考时可写：未确认，不生成隐藏结构"></textarea>
+              </label>
+
+              <div class="field-pair">
+                <label class="field">
+                  <span>材质 / 质地 / 内容物</span>
+                  <input id="material" name="material" type="text" maxlength="160" placeholder="例如：哑光塑料、透明凝露、酥脆断面、柔软垂落">
+                </label>
+                <label class="field">
+                  <span>商品边界 / 附带物</span>
+                  <input id="styling-boundary" name="stylingBoundary" type="text" maxlength="180" placeholder="例如：充电线属于配件，手机与桌面道具不属于商品本体">
+                </label>
+              </div>
+
+              <label class="field field-wide">
+                <span>易漂移锚点 <small>用逗号分隔 3—6 项</small></span>
+                <input id="fragile-anchors" name="fragileAnchors" type="text" maxlength="260" placeholder="例如：金属扣数量与位置，胸前片比例，左右裤腿分离，口袋位置">
+              </label>
+            </section>
+
+            <section class="category-detail-sheet" id="category-detail-sheet" aria-labelledby="category-detail-title">
+              <header class="category-detail-heading">
+                <div>
+                  <span>ADAPTIVE FACT FIELDS</span>
+                  <h3 id="category-detail-title">数码电子专用事实</h3>
+                </div>
+                <small id="category-detail-note">只填写当前商品可确认的接口、控件和状态；空白项不会被模型自行补全。</small>
+              </header>
+              <div class="category-detail-grid" id="category-detail-grid"></div>
+            </section>
+
+            <section class="reference-sheet" aria-labelledby="reference-title">
+              <header class="subsection-heading">
+                <div>
+                  <span class="section-number">02</span>
+                  <h2 id="reference-title">参考图角色</h2>
+                </div>
+                <span id="reference-count">0 / 6</span>
+              </header>
+
+              <input id="reference-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+              <button class="upload-zone" id="upload-button" type="button">
+                <span class="upload-cross" aria-hidden="true"></span>
+                <strong>添加商品参考图</strong>
+                <small>JPG / PNG / WebP · 最多 6 张 · 可拖放</small>
+              </button>
+              <div class="reference-grid" id="reference-grid" aria-live="polite"></div>
+              <p class="reference-tip">每张图只设一个主要职责。优先：主视图 → 结构细节 → 背面 / 底部 → 侧面 → 材质 / 质地。</p>
+
+              <section class="reference-consistency-panel is-idle" id="reference-consistency-panel" aria-live="polite">
+                <div class="consistency-score" id="reference-consistency-score">—</div>
+                <div class="consistency-copy">
+                  <span>REFERENCE PREFLIGHT</span>
+                  <strong>参考图一致性</strong>
+                  <p id="reference-consistency-summary">上传两张以上图片后，AI 会在生成前检查是否为同一商品，并标记颜色、结构、接口与配件冲突。</p>
+                  <ul id="reference-consistency-list"></ul>
+                </div>
+                <span class="consistency-state" id="reference-consistency-state">待检查</span>
+              </section>
+            </section>
+
+            <section class="template-sheet" aria-labelledby="template-title">
+              <header class="subsection-heading">
+                <div>
+                  <span class="section-number">03</span>
+                  <h2 id="template-title">AI 导演约束</h2>
+                </div>
+                <span class="template-ready-badge">已分析 · 完整重构</span>
+              </header>
+
+              <article class="template-card">
+                <div class="template-card-heading">
+                  <div class="template-monogram" aria-hidden="true">PX</div>
+                  <div>
+                    <strong>完整新品自适应规则 · 通用产品路由</strong>
+                    <small>兼容服饰子规则：V领纯色长袖针织衫_Seedance提示词合集(1).txt</small>
+                  </div>
+                </div>
+
+                <div class="skill-compiler-stack" aria-label="当前提示词编译器">
+                  <span><b>已启用</b> Seedance 2.0 Skill OS <em>v6.7.0</em></span>
+                  <span><b>搭配</b> Universal Product Prompt Router</span>
+                </div>
+
+                <div class="template-metrics" aria-label="规则分析结果">
+                  <span><b>13</b> 大类路由</span>
+                  <span><b>7</b> 证明任务</span>
+                  <span><b>19</b> 套原始方案</span>
+                  <span><b>161</b> 个原始镜头</span>
+                  <span><b>8</b> 镜头精细版</span>
+                </div>
+
+                <label class="template-selector">
+                  <span>使用方式</span>
+                  <select id="template-preset" name="templatePreset">
+                    <option value="auto" selected>AI 按当前品类自动判断（推荐）</option>
+                    <option value="apparel">强制服饰穿着规则</option>
+                    <option value="hardgoods">强制硬质商品规则</option>
+                    <option value="universal">通用商品安全规则</option>
+                    <option value="knitwear">强制针织上衣规则（兼容）</option>
+                  </select>
+                </label>
+
+                <div class="template-resolution" id="template-resolution" data-template="universal">
+                  <span>当前匹配</span>
+                  <strong id="template-resolution-name">新品自适应规则 · 数码电子</strong>
+                  <small id="template-resolution-detail">自动匹配品类的操作方式、证据镜头和失败约束；不会把所有商品都套成模特走动。</small>
+                </div>
+
+                <details class="template-rules">
+                  <summary>查看原 TXT 的完整重构规则</summary>
+                  <ol>
+                    <li>参考职责：主视图、结构细节、背面 / 底部、侧面、材质 / 质地各自只控制对应维度。</li>
+                    <li>商品主锁：品类、颜色、轮廓、正背结构、面料表现和易漂移锚点逐项锁定。</li>
+                    <li>正背隔离：正面扣件、门襟和口袋转到背面后自然离开视野，不错误复制。</li>
+                    <li>品类自适应：服饰、美妆、食品、家居、厨房、数码、家电、宠物等分别使用对应动作与证据镜头。</li>
+                    <li>构图硬要求：整体镜头保证商品完整，细节镜头保证边缘、数量和连接关系可核对。</li>
+                    <li>镜头编排：5秒单镜头，10秒最多2镜头；15秒默认生成高还原8镜头，完整保留商品锁、人物连续性、自然表演与服装物理；需要降低负载时可切换稳定3镜头。</li>
+                    <li>分镜证据：每段都写动作、主要运镜、展示目标和完成终点，动作完成后再切镜。</li>
+                    <li>材质与连续性：只写当前档案可观察的质地、状态变化与物理，不虚构成分、参数或功效。</li>
+                    <li>批次差异：每条使用不同钩子、主任务、第一动作和首个机位，不靠换标题制造差异。</li>
+                    <li>精简负面约束：只保留当前品类最容易失败的3—5项，并提供一次一条的修复条款。</li>
+                    <li>后期边界：画面无文字、无拍摄设备；字幕、配音、BGM、价格和CTA留到剪辑阶段。</li>
+                  </ol>
+                </details>
+              </article>
+
+              <p class="template-safety-note">生成时先由 Seedance 2.0 Skill 控制参考绑定、镜头负载与连续性，再由通用产品路由编译当前品类的动作、结构和修复规则；不会继承旧商品内容。</p>
+            </section>
+
+            <section class="settings-sheet">
+              <header class="subsection-heading compact">
+                <div>
+                  <span class="section-number">04</span>
+                  <h2>输出设置</h2>
+                </div>
+              </header>
+              <div class="settings-grid">
+                <label class="field field-wide platform-preset-field">
+                  <span>平台视频预设 <small>创作工作流建议</small></span>
+                  <select id="platform-preset" name="platformPreset">
+                    <option value="tiktok" selected>TikTok · 竖屏快速证明</option>
+                    <option value="facebook">Facebook / Meta · 信息流证据</option>
+                    <option value="instagram">Instagram Reels · 视觉优先</option>
+                    <option value="amazon">Amazon · 克制商品演示</option>
+                    <option value="independent">独立站 · 完整使用流程</option>
+                    <option value="custom">自定义 · 不自动修改设置</option>
+                  </select>
+                  <small>选择预设时自动应用画幅与时长；最终投放规格仍以实际广告位要求为准。</small>
+                </label>
+
+                <article class="platform-preset-card field-wide" id="platform-preset-card">
+                  <div><span>画幅 / 时长</span><strong id="platform-preset-ratio">9:16 · 15 秒</strong></div>
+                  <div><span>节奏</span><strong id="platform-preset-pace">前置动作钩子，快速进入商品证明</strong></div>
+                  <div><span>镜头重点</span><strong id="platform-preset-focus">第一秒出现完整商品和一次可见动作</strong></div>
+                  <p id="platform-preset-safe-area">主体保持在中央安全区；画内不生成字幕，文案与 CTA 留到后期。</p>
+                </article>
+
+                <label class="field">
+                  <span>提示词模式 <small>默认高还原</small></span>
+                  <select id="prompt-mode" name="promptMode">
+                    <option value="fidelity" selected>高还原 8 镜头（推荐）</option>
+                    <option value="stable">精简稳定 3 镜头</option>
+                  </select>
+                  <small id="prompt-mode-note">完整商品锁直接写入每条提示词；15秒使用8镜头，并保留主体连续性、商品物理和自然演示。</small>
+                </label>
+                <label class="field">
+                  <span>单条时长 <small id="duration-mode-label">15秒高还原8镜头</small></span>
+                  <select id="duration" name="duration">
+                    <option value="5">5 秒 · 单动作</option>
+                    <option value="10">10 秒 · 2 镜头</option>
+                    <option value="15" selected>15 秒 · 按提示词模式生成</option>
+                  </select>
+                  <small class="duration-density-note" id="duration-density-note">高还原模式直接生成完整8镜头；每条都自动携带核心商品锁，不需要手工拼接。</small>
+                </label>
+                <label class="field">
+                  <span>提示词数量</span>
+                  <select id="prompt-count" name="promptCount">
+                    <option value="3" selected>3 条 · 基础测试（推荐）</option>
+                    <option value="5">5 条 · 常用组合</option>
+                    <option value="7">7 条 · 完整提示词包</option>
+                  </select>
+                  <small>高还原3条通常约3—5分钟；精简稳定3条约2—3分钟。5条或7条会明显更久。</small>
+                </label>
+                <label class="field">
+                  <span>画幅</span>
+                  <select id="ratio" name="ratio">
+                    <option value="9:16" selected>9:16 竖屏</option>
+                    <option value="4:5">4:5 信息流</option>
+                    <option value="3:4">3:4 商品页</option>
+                    <option value="16:9">16:9 横屏</option>
+                    <option value="1:1">1:1 方形</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>目标市场</span>
+                  <select id="market" name="market">
+                    <option value="日本日常电商" selected>日本</option>
+                    <option value="韩国日常电商">韩国</option>
+                    <option value="欧美日常电商">欧美</option>
+                    <option value="中国日常电商">中国</option>
+                  </select>
+                </label>
+              </div>
+
+              <fieldset class="scene-picker">
+                <legend>可用场景 <small>至少选择 1 个</small></legend>
+                <label><input type="checkbox" name="scene" value="纯净自然光桌面" checked><span>纯净桌面</span></label>
+                <label><input type="checkbox" name="scene" value="真实家庭使用空间" checked><span>真实家庭</span></label>
+                <label><input type="checkbox" name="scene" value="与商品匹配的厨房或浴室"><span>厨房 / 浴室</span></label>
+                <label><input type="checkbox" name="scene" value="克制的户外使用环境"><span>户外环境</span></label>
+                <label><input type="checkbox" name="scene" value="简洁商业使用环境"><span>商业环境</span></label>
+              </fieldset>
+            </section>
+
+            <div class="generate-bar">
+              <div>
+                <span>READY FOR AI DIRECTION</span>
+                <small>AI 会读取当前新品与参考图，重新构思动作、机位、场景、光线和终点，不套预写镜头文案</small>
+              </div>
+              <button class="primary-button" id="generate-button" type="submit">
+                <span>AI生成提示词包</span><b>消耗 Token →</b>
+              </button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="output-column" aria-label="提示词输出区">
+          <header class="output-heading">
+            <div>
+              <p class="eyebrow">COMPOSED FOR SEEDANCE</p>
+              <h2>提示词包</h2>
+              <p id="output-summary">填写商品档案后生成。基础三条会分别测试整体、细节与真实使用演示。</p>
+            </div>
+            <div class="output-actions">
+              <button class="secondary-button accent" id="copy-direct-all-button" type="button" disabled>复制全部直贴词（逐条用）</button>
+              <button class="secondary-button" id="copy-all-button" type="button" disabled>复制完整合集</button>
+              <button class="secondary-button accent" id="download-button" type="button" disabled>下载 TXT</button>
+            </div>
+          </header>
+
+          <section class="ai-optimize-strip" id="ai-optimize-strip" aria-labelledby="ai-optimize-title">
+            <div class="ai-optimize-copy">
+              <span>OPTIONAL AI POLISH · TOKEN CHARGED</span>
+              <strong id="ai-optimize-title">AI 再次精修</strong>
+              <p id="ai-optimize-state">先完成一次 AI 新品生成</p>
+              <small id="ai-optimize-detail">主生成已由 AI 从零编排；这里仅对现有结果再做一次动作和终点精修，不重复上传商品图片。</small>
+            </div>
+            <div class="ai-optimize-actions">
+              <span class="token-meter" id="ai-optimize-usage">本次未调用</span>
+              <button class="optimize-prompts-button" id="optimize-prompts-button" type="button" disabled>
+                <span>AI再次精修</span><b>额外消耗 Token</b>
+              </button>
+            </div>
+          </section>
+
+          <section class="version-history-panel" id="version-history-panel" aria-labelledby="version-history-title">
+            <header>
+              <div>
+                <span>LOCAL VERSION ARCHIVE</span>
+                <strong id="version-history-title">提示词历史与版本对比</strong>
+                <small>成功生成和精修后自动保存到当前浏览器；不保存图片二进制或 API Key。</small>
+              </div>
+              <span id="version-history-count">0 / 12</span>
+            </header>
+            <div class="version-history-list" id="version-history-list">
+              <p class="version-history-empty">还没有历史版本。</p>
+            </div>
+            <div class="history-compare-controls">
+              <label><span>版本 A</span><select id="history-compare-left" aria-label="对比版本 A"></select></label>
+              <label><span>版本 B</span><select id="history-compare-right" aria-label="对比版本 B"></select></label>
+              <button id="history-compare-button" type="button" disabled>比较两个版本</button>
+            </div>
+            <div class="history-compare-result" id="history-compare-result" hidden></div>
+          </section>
+
+          <div class="empty-output" id="empty-output">
+            <div class="empty-folio" aria-hidden="true">
+              <span>01</span><span>02</span><span>03</span>
+            </div>
+            <p class="eyebrow">WAITING FOR PRODUCT FACTS</p>
+            <h3>商品越清楚，镜头越稳定。</h3>
+            <p>从左侧载入数码案例，或填写任意自己的商品。生成后这里会出现产品路由、参考职责、独立提示词和修复条款。</p>
+            <button class="text-link-button" id="empty-demo-button" type="button">先看一个数码商品案例 →</button>
+          </div>
+
+          <div class="output-content" id="output-content" hidden>
+            <section class="reference-map output-section">
+              <header>
+                <span>REFERENCE AUTHORITY</span>
+                <h3>参考角色表</h3>
+              </header>
+              <div id="reference-map-list" class="reference-map-list"></div>
+            </section>
+
+            <section class="product-lock output-section">
+              <header>
+                <span>COMMON PRODUCT LOCK</span>
+                <h3>公共商品锁</h3>
+                <button class="mini-copy" type="button" data-copy-target="common-lock">复制</button>
+              </header>
+              <p id="common-lock"></p>
+            </section>
+
+            <section class="fidelity-score-panel output-section" id="fidelity-score-panel">
+              <header>
+                <span>PROMPT FIDELITY FORECAST</span>
+                <h3>商品还原度评分</h3>
+              </header>
+              <div class="fidelity-score-layout">
+                <div class="fidelity-score-seal">
+                  <strong id="fidelity-score-value">—</strong>
+                  <span>/ 100</span>
+                  <small id="fidelity-score-grade">等待生成</small>
+                </div>
+                <div>
+                  <p id="fidelity-score-summary">评分检查提示词是否锁住颜色、轮廓、接口、文字边界、部件数量与位置；它是生成前预测，不代表对实际视频画面的验收。</p>
+                  <div class="fidelity-dimensions" id="fidelity-dimensions"></div>
+                  <ul class="fidelity-suggestions" id="fidelity-suggestions"></ul>
+                </div>
+              </div>
+            </section>
+
+            <section class="prompt-section output-section">
+              <header>
+                <span>INDEPENDENT CLIPS</span>
+                <h3>独立视频提示词</h3>
+              </header>
+              <p class="prompt-version-note"><b>Seedance直贴版</b>默认使用高还原模式，把完整核心商品锁、主体连续性、品类物理和8镜头直接写入每条提示词；每条拥有不同开场任务。只有执行不全时才切换<b>精简稳定3镜头</b>，完整8镜头仍保留在<b>检查完整版</b>中。</p>
+              <div id="prompt-list" class="prompt-list"></div>
+            </section>
+
+            <div class="review-grid">
+              <section class="qc-panel output-section">
+                <header>
+                  <span>PRE-FLIGHT CHECK</span>
+                  <h3>生成前质检</h3>
+                </header>
+                <ul id="qc-list"></ul>
+              </section>
+
+              <section class="repair-panel output-section">
+                <header>
+                  <span>ONE VARIABLE AT A TIME</span>
+                  <h3>失败修复条款</h3>
+                </header>
+                <div id="repair-list"></div>
+                <p>只把与失败现象对应的一条追加到原提示词末尾；不要一次叠加多条。</p>
+              </section>
+            </div>
+
+            <section class="usage-panel output-section">
+              <div>
+                <span>HOW TO BIND REFERENCES</span>
+                <h3>`@产品主视图` 只是占位符</h3>
+              </div>
+              <ol>
+                <li>在 Seedance 生成页面上传对应参考图。</li>
+                <li>在输入框中键入 <b>@</b>，从列表选择实际文件。</li>
+                <li>用系统插入的真实标签替换提示词中的占位符。</li>
+                <li>每次只复制一张提示词卡片里的 Seedance 直贴版，不要整包一次粘贴。</li>
+                <li>按“整体 → 细节 → 真实使用演示”顺序先小批量测试。</li>
+              </ol>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  </body>
+</html>

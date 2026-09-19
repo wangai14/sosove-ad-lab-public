@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 品牌素材中心</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>智能创作中心</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="素材中心导航">
+        <button data-scroll-target="#assistant-panel-section" type="button">反推提示词</button>
+        <button class="active" data-scroll-target="#main-prompt-section" type="button">爆款复制</button>
+        <a class="nav-link operations-nav-link" href="/operations.html">运行中心</a>
+        <a class="nav-link translate-nav-link" href="/prompt-translate.html">提示词翻译</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <button data-scroll-target="#prompt-history-section" type="button">提示词生成记录</button>
+        <a class="nav-link" href="/materials.html">视频素材库</a>
+        <a class="nav-link" href="/ad-forge.html">Ad Lab</a>
+        <a class="nav-link" href="/fashion-prompts.html">服装提示词</a>
+        <a class="nav-link chatcut-nav-link" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link" href="/accounts.html" data-auth-admin-only>账号管理</a>
+        <button data-scroll-target="#face-swap-section" type="button">角色设定</button>
+        <button data-scroll-target="#result-panel-section" type="button">视频任务中心</button>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong data-auth-username>检测中</strong></span>
+        <span><b>API</b><strong id="api-key-state">检测中</strong></span>
+        <span><b>AI</b><strong id="ai-api-state">检测中</strong></span>
+        <button id="health-btn" class="icon-btn" type="button" title="重新检测">↻</button>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="creator-shell">
+      <section class="creator-heading">
+        <div>
+          <p class="eyebrow">SOSOVE MATERIAL CENTER</p>
+          <h1><span aria-hidden="true">◆</span> AI智能创作</h1>
+        </div>
+        <div class="model-pill">
+          <span>视频模型</span>
+          <strong id="model-state">doubao-seedance-2-0</strong>
+        </div>
+      </section>
+
+      <nav class="creator-quick-nav" aria-label="AI 智能创作快捷工作区">
+        <div class="creator-view-tabs" role="tablist" aria-label="创作工作区">
+          <span>快捷工作区</span>
+          <button class="active" data-workspace-view="create" type="button" role="tab" aria-selected="true">创作提示词</button>
+          <button data-workspace-view="assets" type="button" role="tab" aria-selected="false">参考素材</button>
+          <button data-workspace-view="assistant" type="button" role="tab" aria-selected="false">AI 助手</button>
+          <button data-workspace-view="library" type="button" role="tab" aria-selected="false">模板与记录</button>
+          <button data-workspace-view="settings" type="button" role="tab" aria-selected="false">接口配置</button>
+        </div>
+        <button class="creator-result-jump" data-scroll-target="#result-panel-section" type="button">任务结果</button>
+      </nav>
+
+      <details class="creator-status-panel">
+        <summary>
+          <div>
+            <strong>工作台状态</strong>
+            <span>接口、素材、提示词和任务进度</span>
+          </div>
+          <span>展开状态</span>
+        </summary>
+        <div class="creator-status-content">
+      <section class="workflow-strip" aria-label="推荐生成流程">
+        <article class="workflow-step">
+          <span>1</span>
+          <strong>配置接口</strong>
+          <small id="workflow-config-state">检测中</small>
+        </article>
+        <article class="workflow-step">
+          <span>2</span>
+          <strong>整理素材</strong>
+          <small id="workflow-assets-state">等待素材</small>
+        </article>
+        <article class="workflow-step">
+          <span>3</span>
+          <strong>修复提示词</strong>
+          <small id="workflow-prompt-state">等待输入</small>
+        </article>
+        <article class="workflow-step">
+          <span>4</span>
+          <strong>提交生成</strong>
+          <small id="workflow-submit-state">等待预检</small>
+        </article>
+      </section>
+
+      <section class="ops-summary-grid" aria-label="工作台状态总览">
+        <article>
+          <span>接口状态</span>
+          <strong id="ops-api-state">检测中</strong>
+          <small id="ops-ai-state">AI 检测中</small>
+        </article>
+        <article>
+          <span>当前模型</span>
+          <strong id="ops-model-state">doubao-seedance-2-0</strong>
+          <small id="ops-ratio-state">9:16 · 10s</small>
+        </article>
+        <article>
+          <span>素材</span>
+          <strong id="ops-asset-state">0 个提交</strong>
+          <small id="ops-workspace-state">0 个参考</small>
+        </article>
+        <article>
+          <span>提示词</span>
+          <strong id="ops-prompt-state">未填写</strong>
+          <small id="ops-quality-state">待检查</small>
+        </article>
+        <article>
+          <span>任务</span>
+          <strong id="ops-task-state">0/0</strong>
+          <small id="ops-task-detail-state">等待提交</small>
+        </article>
+      </section>
+        </div>
+      </details>
+
+      <form id="composer-form" class="creator-card composer-workspace-form">
+        <section id="api-config-panel" class="api-config-panel is-collapsed" aria-label="模型接口配置" data-workspace-pane="settings">
+          <div class="api-config-head">
+            <div>
+              <span class="panel-kicker">API CONFIG</span>
+              <strong>模型接口配置中心</strong>
+              <small>视频、提示词 AI 与图片生成接口独立配置；密钥保存在本地后端，页面只显示脱敏状态。</small>
+            </div>
+            <div class="api-config-actions">
+              <div class="config-summary-strip" aria-label="接口配置状态摘要">
+                <span><b>视频</b><strong id="ark-summary-state">检测中</strong></span>
+                <span><b>AI</b><strong id="ai-summary-state">检测中</strong></span>
+                <span><b>图片</b><strong id="image-summary-state">检测中</strong></span>
+              </div>
+              <button id="toggle-config-btn" class="soft-action" type="button" aria-expanded="false" aria-controls="api-config-body">展开配置</button>
+              <button id="save-config-btn" class="outline-action" type="button">保存配置</button>
+            </div>
+          </div>
+
+          <div id="api-config-body" class="api-config-grid">
+            <fieldset class="api-config-block">
+              <legend>视频生成接口</legend>
+              <div class="config-status-line">
+                <span id="ark-config-state">检测中</span>
+                <div class="config-status-actions">
+                  <button id="test-ark-config-btn" class="mini-action" type="button">检测连通性</button>
+                  <button id="invoke-ark-config-btn" class="mini-action primary" type="button">试调用模型</button>
+                  <button id="clear-ark-key-btn" class="ghost-link" type="button">清除 Ark Key</button>
+                </div>
+              </div>
+              <div id="ark-config-test-detail" class="config-test-detail" data-tone="idle">
+                <span>NETWORK</span>
+                <strong>尚未检测网络、鉴权和模型调用状态</strong>
+              </div>
+              <label class="config-field">
+                <span>CPA / Ark Key</span>
+                <input id="ark-api-key-input" type="password" autocomplete="off" placeholder="粘贴 CPA 视频节点 Key / ARK_API_KEY，留空则保留已保存密钥">
+              </label>
+              <label class="config-field">
+                <span>视频 Endpoint</span>
+                <input id="ark-endpoint-input" type="url" value="https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks" placeholder="https://你的-cpa节点/api/v3/contents/generations/tasks">
+              </label>
+              <span class="config-helper">CPA 中转请填写完整 Seedance 任务提交地址；状态查询会自动在后面拼接 task_id。</span>
+              <div class="model-presets" aria-label="Seedance 模型预设">
+                <button class="active" data-model-preset="doubao-seedance-2-0-260128" type="button">Seedance 2.0</button>
+              </div>
+              <label class="config-field">
+                <span>Seedance 模型</span>
+                <input id="model-input" type="text" value="doubao-seedance-2-0-260128" placeholder="doubao-seedance-2-0-260128 或 seed2.0" aria-label="Seedance 模型 ID">
+              </label>
+              <span id="model-helper" class="config-helper">提交视频时使用：doubao-seedance-2-0-260128</span>
+              <small class="config-test-note">“检测连通性”只检查节点、HTTP 和鉴权；“试调用模型”会创建一条 5 秒视频测试任务。</small>
+            </fieldset>
+
+            <fieldset class="api-config-block">
+              <legend>AI 提示词接口</legend>
+              <div class="config-status-line">
+                <span id="ai-config-state">检测中</span>
+                <div class="config-status-actions">
+                  <button id="test-ai-config-btn" class="mini-action" type="button">检测连通性</button>
+                  <button id="invoke-ai-config-btn" class="mini-action primary" type="button">试调用模型</button>
+                  <button id="clear-ai-key-btn" class="ghost-link" type="button">清除 AI Key</button>
+                </div>
+              </div>
+              <div id="ai-config-test-detail" class="config-test-detail" data-tone="idle">
+                <span>NETWORK</span>
+                <strong>尚未检测网络、鉴权和模型调用状态</strong>
+              </div>
+              <label class="config-field">
+                <span>CPA / AI Key</span>
+                <input id="ai-api-key-input" type="password" autocomplete="off" placeholder="粘贴 CPA AI 节点 Key / OPENAI_API_KEY，留空则保留已保存密钥">
+              </label>
+              <label class="config-field">
+                <span>AI Base URL</span>
+                <input id="ai-base-url-input" type="url" value="https://api.openai.com/v1" placeholder="https://你的-cpa节点/v1">
+              </label>
+              <span class="config-helper">兼容 OpenAI 格式；可填 /v1，也可直接粘贴完整 /chat/completions 地址。</span>
+              <label class="config-field">
+                <span>AI 模型</span>
+                <input id="ai-model-input" type="text" value="gpt-4o-mini" placeholder="gpt-4o-mini 或豆包兼容模型 ID">
+              </label>
+              <div class="config-inline-fields">
+                <label class="config-field">
+                  <span>温度</span>
+                  <input id="ai-temperature-input" type="number" min="0" max="2" step="0.1" value="0.7">
+                </label>
+                <label class="config-field">
+                  <span>最大 Tokens</span>
+                  <input id="ai-max-tokens-input" type="number" min="128" max="4000" step="1" value="700">
+                </label>
+              </div>
+              <small class="config-test-note">AI 试调用只发送“回复 OK”的短请求，用于验证 Base URL、Key 和模型名称。</small>
+            </fieldset>
+
+            <fieldset class="api-config-block image-api-config-block">
+              <legend>图片生成接口</legend>
+              <div class="config-status-line">
+                <span id="image-config-state">检测中</span>
+                <div class="config-status-actions">
+                  <button id="clear-image-key-btn" class="ghost-link" type="button">清除图片 Key</button>
+                </div>
+              </div>
+              <div id="image-config-detail" class="config-test-detail" data-tone="idle">
+                <span>AD LAB</span>
+                <strong>用于关键帧图片生成；保存后 Ad Lab 自动读取</strong>
+              </div>
+              <div class="image-api-config-fields">
+                <label class="config-field">
+                  <span>图片 API Key</span>
+                  <input id="image-api-key-input" type="password" autocomplete="off" placeholder="粘贴图片生成节点 Key，留空则保留已保存密钥">
+                </label>
+                <label class="config-field">
+                  <span>图片 Base URL</span>
+                  <input id="image-base-url-input" type="url" value="https://api.openai.com/v1" placeholder="https://你的图片节点/v1">
+                </label>
+                <label class="config-field">
+                  <span>图片模型</span>
+                  <input id="image-model-input" type="text" value="gpt-image-2" placeholder="gpt-image-2">
+                </label>
+              </div>
+              <small class="config-test-note">支持 OpenAI 兼容的 <code>/images/generations</code> 接口；外部服务必须使用 HTTPS。</small>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="creative-brief-panel" aria-label="结构化创作资料" data-workspace-pane="create">
+          <div class="creative-brief-head">
+            <div>
+              <span class="panel-kicker">CREATIVE BRIEF</span>
+              <strong>结构化创作资料</strong>
+              <small>先填写商品和脚本信息，再由 AI 或 Skill 自动整理成 Seedance Prompt。</small>
+            </div>
+            <div class="creative-brief-actions">
+              <span id="creative-brief-state">等待填写</span>
+              <a class="mini-action link-action" href="/materials.html#material-library-section">选择素材</a>
+              <button id="creative-ai-btn" class="mini-action" type="button">AI 生成 Prompt</button>
+              <button id="creative-skill-btn" class="mini-action primary" type="button">Skill 生成方案</button>
+            </div>
+          </div>
+          <div class="creative-brief-grid">
+            <label>
+              <span>产品名称 / SKU</span>
+              <input id="creative-product-input" type="text" maxlength="120" placeholder="例如：1343107 不规则斜扣阔腿牛仔裤">
+            </label>
+            <label>
+              <span>目标市场 / 国家</span>
+              <select id="creative-market-input">
+                <option value="日本">日本</option>
+                <option value="美国">美国</option>
+                <option value="英国">英国</option>
+                <option value="韩国">韩国</option>
+                <option value="法国">法国</option>
+                <option value="德国">德国</option>
+                <option value="西班牙">西班牙</option>
+                <option value="意大利">意大利</option>
+                <option value="巴西">巴西</option>
+                <option value="墨西哥">墨西哥</option>
+                <option value="加拿大">加拿大</option>
+                <option value="澳大利亚">澳大利亚</option>
+                <option value="泰国">泰国</option>
+                <option value="越南">越南</option>
+                <option value="印度尼西亚">印度尼西亚</option>
+                <option value="沙特阿拉伯">沙特阿拉伯</option>
+                <option value="阿联酋">阿联酋</option>
+                <option value="__custom__">其他国家（手动输入）</option>
+              </select>
+              <input id="creative-custom-market-input" type="text" maxlength="80" placeholder="输入其他国家或地区" hidden>
+            </label>
+            <label>
+              <span>内容语言</span>
+              <select id="creative-language-select">
+                <option value="auto">跟随目标市场（推荐）</option>
+                <option value="日语">日语</option>
+                <option value="美式英语">美式英语</option>
+                <option value="英式英语">英式英语</option>
+                <option value="韩语">韩语</option>
+                <option value="法语">法语</option>
+                <option value="德语">德语</option>
+                <option value="西班牙语">西班牙语</option>
+                <option value="意大利语">意大利语</option>
+                <option value="巴西葡萄牙语">巴西葡萄牙语</option>
+                <option value="泰语">泰语</option>
+                <option value="越南语">越南语</option>
+                <option value="印度尼西亚语">印度尼西亚语</option>
+                <option value="阿拉伯语">阿拉伯语</option>
+              </select>
+            </label>
+            <label>
+              <span>视频方向</span>
+              <select id="creative-style-select">
+                <option value="当地电商商品广告">当地电商商品广告</option>
+                <option value="TikTok UGC 原生广告">TikTok UGC 原生广告</option>
+                <option value="Meta 直接转化广告">Meta 直接转化广告</option>
+                <option value="口播带货">口播带货</option>
+                <option value="上身穿搭展示">上身穿搭展示</option>
+                <option value="商品细节特写">商品细节特写</option>
+                <option value="第一视角开箱">第一视角开箱</option>
+                <option value="参考素材爆款复刻">参考素材爆款复刻</option>
+              </select>
+            </label>
+            <label class="creative-brief-half">
+              <span>目标人群</span>
+              <input id="creative-audience-input" type="text" maxlength="160" placeholder="例如：25-45 岁通勤女性、大学生、年轻妈妈">
+            </label>
+            <label class="creative-brief-half">
+              <span>核心卖点</span>
+              <input id="creative-selling-points-input" type="text" maxlength="400" placeholder="例如：斜腰双扣、高腰显腿长、阔腿遮肉、面料有垂感">
+            </label>
+            <div id="creative-market-note" class="creative-market-note">日本市场 · 日语 · 使用当地真实人物、场景和自然口语</div>
+            <label class="creative-brief-wide creative-script-field">
+              <span>口播文案 / 分镜要求</span>
+              <textarea id="creative-script-input" rows="3" maxlength="2400" placeholder="粘贴目标市场当地语言的口播文案，或填写开头钩子、细节展示、上身效果、结尾召回等镜头要求"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section id="prompt-history-section" class="prompt-history-panel top-prompt-history" aria-label="提示词生成记录" data-workspace-pane="library">
+          <div class="prompt-history-head">
+            <div>
+              <strong>提示词生成记录</strong>
+              <span>AI 生成的提示词会自动汇总到这里，点击回填可直接复用。</span>
+            </div>
+            <button id="clear-prompt-history-btn" class="mini-action" type="button">清空</button>
+          </div>
+          <div id="prompt-history-list" class="prompt-history-list" aria-live="polite"></div>
+        </section>
+
+        <section class="prompt-template-panel" aria-label="提示词模板库" data-workspace-pane="library">
+          <div class="section-title">
+            <div>
+              <h3>提示词模板库</h3>
+              <small>选择一个模板会追加到提示词编辑区，适合快速搭建 SOSOVE 视频结构。</small>
+            </div>
+            <button id="clear-template-insert-btn" class="soft-action" type="button">只保留模板</button>
+          </div>
+          <div id="prompt-template-list" class="prompt-template-list" aria-live="polite"></div>
+        </section>
+
+        <section id="main-prompt-section" class="main-prompt" data-workspace-pane="create">
+          <div class="main-prompt-head">
+            <div>
+              <span class="panel-kicker">SEEDANCE PROMPT</span>
+              <strong>视频生成提示词</strong>
+              <small>支持输入 @ 调用当前工作台素材，右侧会实时检查 Prompt 与生成条件。</small>
+            </div>
+            <span id="prompt-market-lock-state" class="prompt-market-lock-state">日本 · 日语 · 提交时锁定</span>
+          </div>
+          <div class="prompt-editor-shell">
+            <div id="prompt-highlight-layer" class="prompt-highlight-layer" aria-hidden="true"></div>
+            <textarea id="prompt-input" rows="8" maxlength="10000" placeholder="粘贴或填写你已经写好的视频提示词；国家、语言、比例和时长可以在下方单独选择..."></textarea>
+          </div>
+          <div id="asset-mention-popover" class="asset-mention-popover" role="listbox" aria-label="提示词素材引用" hidden></div>
+          <button class="expand-btn" type="button" title="聚焦提示词">↗</button>
+          <div class="prompt-toolbar">
+            <div class="toolbar-left">
+              <label class="prompt-localization-control prompt-market-control">
+                <span>国家</span>
+                <select id="prompt-market-input" aria-label="视频生成目标国家">
+                  <option value="日本">日本</option>
+                  <option value="美国">美国</option>
+                  <option value="英国">英国</option>
+                  <option value="韩国">韩国</option>
+                  <option value="法国">法国</option>
+                  <option value="德国">德国</option>
+                  <option value="西班牙">西班牙</option>
+                  <option value="意大利">意大利</option>
+                  <option value="巴西">巴西</option>
+                  <option value="墨西哥">墨西哥</option>
+                  <option value="加拿大">加拿大</option>
+                  <option value="澳大利亚">澳大利亚</option>
+                  <option value="泰国">泰国</option>
+                  <option value="越南">越南</option>
+                  <option value="印度尼西亚">印度尼西亚</option>
+                  <option value="沙特阿拉伯">沙特阿拉伯</option>
+                  <option value="阿联酋">阿联酋</option>
+                  <option value="__custom__">其他国家</option>
+                </select>
+                <input id="prompt-custom-market-input" type="text" maxlength="80" aria-label="手动输入目标国家" placeholder="输入国家" hidden>
+              </label>
+              <label class="prompt-localization-control prompt-language-control">
+                <span>语言</span>
+                <select id="prompt-language-select" aria-label="视频生成内容语言">
+                  <option value="auto">自动匹配</option>
+                  <option value="日语">日语</option>
+                  <option value="美式英语">美式英语</option>
+                  <option value="英式英语">英式英语</option>
+                  <option value="韩语">韩语</option>
+                  <option value="法语">法语</option>
+                  <option value="德语">德语</option>
+                  <option value="西班牙语">西班牙语</option>
+                  <option value="意大利语">意大利语</option>
+                  <option value="巴西葡萄牙语">巴西葡萄牙语</option>
+                  <option value="泰语">泰语</option>
+                  <option value="越南语">越南语</option>
+                  <option value="印度尼西亚语">印度尼西亚语</option>
+                  <option value="阿拉伯语">阿拉伯语</option>
+                </select>
+              </label>
+              <div class="tool-group" aria-label="视频比例">
+                <button class="active" data-ratio="9:16" type="button">9:16</button>
+                <button data-ratio="16:9" type="button">16:9</button>
+                <button data-ratio="1:1" type="button">1:1</button>
+              </div>
+              <div class="tool-group" aria-label="视频时长">
+                <button data-duration="5" type="button">5s</button>
+                <button class="active" data-duration="10" type="button">10s</button>
+                <button data-duration="11" type="button">11s</button>
+                <button data-duration="15" type="button">15s</button>
+              </div>
+              <label class="quantity-control" aria-label="生成数量">
+                <button id="quantity-minus" type="button" aria-label="减少生成数量">-</button>
+                <input id="quantity-input" type="number" min="1" max="4" step="1" value="1">
+                <button id="quantity-plus" type="button" aria-label="增加生成数量">+</button>
+              </label>
+              <label class="switch-pill">
+                <input id="audio-toggle" type="checkbox">
+                <span>有声</span>
+              </label>
+              <label class="switch-pill">
+                <input id="watermark-toggle" type="checkbox">
+                <span>水印</span>
+              </label>
+            </div>
+            <span id="prompt-count" class="prompt-count">0 / 10000</span>
+          </div>
+        </section>
+
+        <section class="prompt-quality-panel" aria-label="提示词检查与优化" data-workspace-pane="create">
+          <div class="section-title">
+            <div>
+              <h3>提示词检查与优化</h3>
+              <small>先做基础检查，再用 Seedance Skill 重写为可直接生成的视频提示词。</small>
+            </div>
+            <div class="prompt-quality-actions">
+              <span id="prompt-quality-score" class="prompt-quality-score status-idle">待检查</span>
+              <button id="strengthen-prompt-btn" class="soft-action" type="button">补强结构</button>
+              <button id="skill-review-prompt-btn" class="outline-action" type="button">Skill 优化提示词</button>
+            </div>
+          </div>
+          <div id="prompt-quality-list" class="prompt-quality-list" aria-live="polite"></div>
+          <div id="prompt-skill-review" class="prompt-skill-review" aria-live="polite" hidden>
+            <div class="prompt-skill-review-head">
+              <div>
+                <span>SEEDANCE 2.0 SKILL</span>
+                <strong id="prompt-skill-review-title">优化完成</strong>
+              </div>
+              <span id="prompt-skill-review-score" class="prompt-quality-score status-idle">待优化</span>
+            </div>
+            <p id="prompt-skill-review-summary"></p>
+            <div class="prompt-skill-review-diff">
+              <section>
+                <strong>保留内容</strong>
+                <div id="prompt-skill-review-preserved"></div>
+              </section>
+              <section>
+                <strong>主要修改</strong>
+                <div id="prompt-skill-review-changes"></div>
+              </section>
+            </div>
+            <div class="prompt-skill-review-analysis">
+              <strong>优化依据</strong>
+              <div id="prompt-skill-review-issues" class="prompt-skill-review-issues"></div>
+            </div>
+            <label class="prompt-skill-review-output">
+              <span>可直接生成的优化 Prompt</span>
+              <textarea id="prompt-skill-review-output" rows="7" readonly></textarea>
+            </label>
+            <div class="prompt-skill-review-actions">
+              <button id="apply-prompt-skill-review-btn" class="outline-action" type="button">应用到提示词</button>
+              <button id="copy-prompt-skill-review-btn" class="soft-action" type="button">复制优化 Prompt</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="preflight-panel" aria-label="生成前预检" data-workspace-pane="create">
+          <div class="section-title">
+            <h3>生成前预检</h3>
+            <span id="preflight-summary" class="preflight-summary">待检查</span>
+          </div>
+          <div id="preflight-list" class="preflight-list" aria-live="polite"></div>
+        </section>
+
+        <section id="reference-panel-section" class="reference-panel" data-workspace-pane="assets">
+          <div class="reference-head">
+            <div>
+              <span class="panel-kicker">ASSET LIBRARY</span>
+              <strong>素材库</strong>
+            </div>
+            <div class="asset-counts" aria-label="参考素材数量">
+              <span>图 <b id="asset-image-count">0</b></span>
+              <span>视频 <b id="asset-video-count">0</b></span>
+              <span>音频 <b id="asset-audio-count">0</b></span>
+            </div>
+          </div>
+          <p class="notice-line">多模态参考与音频模式互斥时，建议至少保留一张参考图或一条参考视频。</p>
+          <div class="asset-batch-entry">
+            <div>
+              <strong>批量上传、打标签和按批次整理</strong>
+              <small>素材批次已移动到独立页面，适合集中上传剪辑素材并做标签筛选。</small>
+            </div>
+            <a class="outline-action link-action" href="/materials.html">打开素材批次页</a>
+          </div>
+          <div class="asset-route-grid" aria-label="素材提交路由">
+            <article class="asset-route-card submitted">
+              <div>
+                <strong>会提交给 Seedance</strong>
+                <small id="submitted-asset-summary">0 个素材</small>
+              </div>
+              <div id="submitted-asset-list" class="asset-route-list" aria-live="polite"></div>
+            </article>
+            <article class="asset-route-card workspace-only">
+              <div>
+                <strong>仅工作台参考</strong>
+                <small id="workspace-asset-summary">0 个素材</small>
+              </div>
+              <div id="workspace-asset-list" class="asset-route-list" aria-live="polite"></div>
+            </article>
+          </div>
+          <div class="asset-role-panel" aria-label="素材角色设置">
+            <div class="section-title compact-title">
+              <div>
+                <h3>素材角色设置</h3>
+                <small id="asset-role-note">给每个素材标记用途；选择“仅工作台参考”后不会提交给 Seedance。</small>
+              </div>
+            </div>
+            <div id="asset-role-list" class="asset-role-list" aria-live="polite"></div>
+          </div>
+          <div class="reference-grid">
+            <div class="reference-card image-reference-card">
+              <span>参考图 URL</span>
+              <div id="image-preview-grid" class="image-preview-grid" aria-live="polite"></div>
+              <div id="image-upload-zone" class="material-upload-zone image-upload-zone" role="button" tabindex="0" aria-label="上传图片素材">
+                <div>
+                  <strong>上传图片素材</strong>
+                  <small>点击选择或拖拽图片，支持 JPG / PNG / WebP / GIF，单张不超过 10MB</small>
+                </div>
+                <button id="image-upload-btn" class="outline-action" type="button">选择图片</button>
+                <input id="image-upload-input" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+              </div>
+              <div id="uploaded-image-list" class="uploaded-material-list uploaded-image-list" aria-live="polite"></div>
+              <p id="upload-helper" class="upload-helper">上传成功后会自动追加到下方参考图 URL。Seedance 正式生成需要公网可访问图片 URL。</p>
+              <textarea id="images-input" class="url-input" rows="6" placeholder="每行一个图片 URL，或用逗号分隔"></textarea>
+            </div>
+            <div class="reference-card">
+              <span>参考视频 URL</span>
+              <div id="video-preview-grid" class="video-preview-grid" aria-live="polite"></div>
+              <div id="video-upload-zone" class="material-upload-zone video-upload-zone" role="button" tabindex="0" aria-label="上传视频素材">
+                <div>
+                  <strong>上传视频素材</strong>
+                  <small>点击选择或拖拽视频，支持 MP4 / MOV / WebM / M4V，单个不超过 200MB</small>
+                </div>
+                <button id="video-upload-btn" class="outline-action" type="button">选择视频</button>
+                <input id="video-upload-input" class="sr-only" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v,.mp4,.mov,.webm,.m4v" multiple>
+              </div>
+              <div id="uploaded-video-list" class="uploaded-material-list uploaded-video-list" aria-live="polite"></div>
+              <p id="video-upload-helper" class="upload-helper">上传成功后会自动追加到下方参考视频 URL。Seedance 正式生成需要公网可访问视频 URL。</p>
+              <textarea id="videos-input" class="url-input" rows="4" placeholder="https://example.com/ref.mp4"></textarea>
+            </div>
+            <div class="reference-card">
+              <span>参考音频 URL</span>
+              <div id="audio-preview-list" class="audio-preview-list" aria-live="polite"></div>
+              <div id="audio-upload-zone" class="material-upload-zone audio-upload-zone" role="button" tabindex="0" aria-label="上传音频素材">
+                <div>
+                  <strong>上传音频素材</strong>
+                  <small>点击选择或拖拽音频，支持 MP3 / WAV / M4A / AAC / OGG，单个不超过 50MB</small>
+                </div>
+                <button id="audio-upload-btn" class="outline-action" type="button">选择音频</button>
+                <input id="audio-upload-input" class="sr-only" type="file" accept="audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/webm,audio/flac,.mp3,.wav,.m4a,.aac,.ogg,.webm,.flac" multiple>
+              </div>
+              <div id="uploaded-audio-list" class="uploaded-material-list uploaded-audio-list" aria-live="polite"></div>
+              <p id="audio-upload-helper" class="upload-helper">上传成功后会自动追加到下方参考音频 URL。Seedance 正式生成需要公网可访问音频 URL。</p>
+              <textarea id="audios-input" class="url-input" rows="4" placeholder="https://example.com/music.mp3"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section id="face-swap-section" class="face-swap-panel" aria-label="AI 虚拟角色设定" data-workspace-pane="assets">
+          <div class="face-swap-head">
+            <div>
+              <span class="panel-kicker">VIRTUAL CHARACTER SETUP</span>
+              <strong>AI 虚拟角色设定</strong>
+              <small>上传豆包/AI 生成的虚拟头像作为工作台参考；如果模型只要检测到人脸就拦截，头像图和带脸参考视频都不要直接提交。</small>
+            </div>
+            <span id="face-swap-state" class="face-swap-state">未启用</span>
+          </div>
+          <div class="face-swap-layout">
+            <div class="face-swap-assets">
+              <div id="face-swap-preview-grid" class="face-swap-preview-grid" aria-live="polite"></div>
+              <div id="face-swap-upload-zone" class="material-upload-zone face-swap-upload-zone" role="button" tabindex="0" aria-label="上传授权人像素材">
+                <div>
+                  <strong>上传授权人像素材</strong>
+                  <small>建议上传清晰正脸或半侧脸图片，支持 JPG / PNG / WebP，单张不超过 10MB</small>
+                </div>
+                <button id="face-swap-upload-btn" class="outline-action" type="button">选择人像</button>
+                <input id="face-swap-upload-input" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+              </div>
+              <div id="uploaded-face-swap-list" class="uploaded-material-list uploaded-face-swap-list" aria-live="polite"></div>
+              <p id="face-swap-helper" class="upload-helper">上传成功后会写入下方人像 URL。当前建议走无脸安全模式：头像图只在工作台查看，提交时使用文字描述头像特征。</p>
+              <textarea id="face-swap-refs-input" class="url-input" rows="4" placeholder="每行一个豆包/AI 生成头像或已授权人像图片 URL"></textarea>
+            </div>
+            <div class="face-swap-settings">
+              <label class="consent-check">
+                <input id="face-swap-consent" type="checkbox">
+                <span>我确认已获得该人像素材的使用授权，仅用于合法品牌内容制作。</span>
+              </label>
+              <label class="consent-check virtual-check">
+                <input id="face-swap-virtual-input" type="checkbox">
+                <span>这是豆包/AI 生成的虚拟头像，启用无脸安全模式：头像图不提交，只提交头像文字描述。</span>
+              </label>
+              <label class="consent-check risk-check">
+                <input id="face-swap-submit-input" type="checkbox">
+                <span>强制将人像图提交给 Seedance。不推荐：当前策略下只要检测到人脸就可能失败。</span>
+              </label>
+              <label class="face-swap-field">
+                <span>头像文字描述 / 角色要求</span>
+                <textarea id="face-swap-prompt-input" rows="5" placeholder="例如：AI 虚拟女模特，日系清透妆容，黑色中长发，鹅蛋脸，柔和五官，甜酷气质。参考视频1只用于动作、构图、镜头节奏和身体姿态，重新生成一个新视频。"></textarea>
+              </label>
+              <div class="face-swap-actions">
+                <button id="apply-face-swap-btn" class="outline-action" type="button">写入提示词</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="assistant-panel-section" class="assistant-panel" data-workspace-pane="assistant">
+          <div class="assistant-head">
+            <div>
+              <h2>AI 提示词助手</h2>
+              <p>写商品资料、落地页卖点、广告数据或镜头要求，Skill 可先生成文案脚本，再回填 Seedance Prompt。</p>
+            </div>
+            <div class="assistant-actions">
+              <label class="skill-count-control">
+                <span>Prompt数量</span>
+                <input id="skill-prompt-count-input" type="number" min="1" max="4" step="1" value="2">
+              </label>
+              <button id="skill-generate-btn" class="outline-action green" type="button">Skill生成方案</button>
+              <button id="ai-generate-btn" class="outline-action" type="button">AI智能体</button>
+            </div>
+          </div>
+          <textarea id="ai-brief-input" rows="3" placeholder="例如：白色网纱百褶裙，日系温柔通勤感，突出网纱层次、刺绣花纹、裙摆边缘细节..."></textarea>
+          <div id="skill-output-panel" class="skill-output-panel" hidden>
+            <div class="skill-output-head">
+              <strong>Skill 输出方案</strong>
+              <div>
+                <button id="use-skill-prompt-btn" class="mini-action" type="button">使用 Prompt</button>
+                <button id="submit-skill-queue-btn" class="mini-action green" type="button">队列生成视频</button>
+                <button id="copy-skill-output-btn" class="mini-action" type="button">复制方案</button>
+              </div>
+            </div>
+            <div id="skill-prompt-queue" class="skill-prompt-queue" aria-live="polite"></div>
+            <textarea id="skill-output-input" rows="10"></textarea>
+          </div>
+        </section>
+
+        <section class="chat-parser" data-workspace-pane="assistant">
+          <div>
+            <strong>聊天文本解析</strong>
+            <span>直接粘贴图1、要求、比例、时长、数量等文本</span>
+          </div>
+          <textarea id="chat-input" rows="3" placeholder="图1: https://a.jpg&#10;要求: 一位23-30岁的日本女性...&#10;比例: 9:16&#10;时长: 10"></textarea>
+          <button id="parse-chat-btn" class="soft-action" type="button">解析到表单</button>
+        </section>
+
+        <section class="enhance-row creator-submit-dock">
+          <div class="creator-submit-tools">
+            <span>提示词工具</span>
+            <button class="soft-action" type="button">润色</button>
+            <button id="sample-btn" class="soft-action" type="button">填入示例</button>
+            <button id="clear-btn" class="soft-action" type="button">清空</button>
+            <button id="repair-prompt-btn" class="outline-action" type="button">合规修复</button>
+          </div>
+          <div class="creator-submit-primary">
+            <span id="generate-ready-summary">等待填写创作资料</span>
+            <button id="build-btn" class="outline-action" type="button">AI 分镜图</button>
+            <button id="submit-btn" class="send-btn" type="button" title="提交生成"><span>生成视频</span><b aria-hidden="true">➤</b></button>
+          </div>
+        </section>
+      </form>
+
+      <section id="result-panel-section" class="result-panel">
+        <div class="panel-head compact result-head">
+          <div>
+            <p class="eyebrow">Video Task Center</p>
+            <h2>任务与结果</h2>
+            <p class="result-subcopy">提交后自动轮询任务状态，生成成功的视频会优先展示在预览区。</p>
+          </div>
+          <div class="result-actions">
+            <button id="retry-failed-btn" class="soft-action" type="button" disabled>修复失败并重试</button>
+            <button id="copy-task-btn" class="soft-action" type="button">复制任务 ID</button>
+            <button id="poll-btn" class="outline-action" type="button" disabled>轮询状态</button>
+          </div>
+        </div>
+
+        <div class="task-metrics">
+          <div class="metric-tile">
+            <span class="label">Task ID</span>
+            <strong id="task-id">未提交</strong>
+            <small id="task-count-label">等待提交</small>
+          </div>
+          <div class="metric-tile">
+            <span class="label">状态</span>
+            <strong id="task-status" class="status-badge status-idle">待命</strong>
+            <small id="poll-state">轮询未启动</small>
+          </div>
+          <div class="metric-tile progress-tile">
+            <span class="label">生成进度</span>
+            <strong id="task-progress">0/0</strong>
+            <div class="progress-track" aria-hidden="true">
+              <span id="task-progress-bar"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="task-queue">
+          <div class="section-title compact-title">
+            <h3>任务队列</h3>
+            <small id="task-queue-note">提交后显示每条任务状态</small>
+          </div>
+          <div id="batch-list" class="batch-list" aria-live="polite"></div>
+        </div>
+
+        <div class="result-grid">
+          <section class="video-card" aria-label="视频预览">
+            <div class="media-head">
+              <div>
+                <span class="label">Preview</span>
+                <strong>视频预览</strong>
+              </div>
+              <div class="video-actions">
+                <span id="result-video-state">等待生成</span>
+                <button id="copy-video-btn" class="mini-action" type="button" disabled>复制视频 URL</button>
+                <a id="download-video-link" class="mini-action link-action" href="#" download hidden>下载</a>
+              </div>
+            </div>
+            <div id="video-stage" class="video-stage">
+              <div class="empty-state">
+                <span aria-hidden="true">◇</span>
+                <p>生成成功后，视频会显示在这里。</p>
+              </div>
+            </div>
+          </section>
+          <div class="json-column inspector-card">
+            <div class="section-title">
+              <h3>请求 JSON</h3>
+              <button id="copy-json-btn" class="soft-action" type="button">复制</button>
+            </div>
+            <pre id="json-preview" class="code-pane">{}</pre>
+          </div>
+        </div>
+
+        <section class="history-section" aria-label="任务历史">
+          <div class="section-title">
+            <h3>任务历史</h3>
+            <button id="clear-history-btn" class="soft-action" type="button">清除</button>
+          </div>
+          <div id="history-list" class="history-list"></div>
+        </section>
+        <div id="task-error-box" class="task-error-box" hidden></div>
+      </section>
+
+      <div id="image-lightbox" class="image-lightbox" role="dialog" aria-modal="true" aria-labelledby="image-lightbox-title" hidden>
+        <div class="image-lightbox-backdrop" data-lightbox-close></div>
+        <section class="image-lightbox-panel">
+          <div class="image-lightbox-head">
+            <div>
+              <span class="panel-kicker">REFERENCE IMAGE</span>
+              <strong id="image-lightbox-title">参考图预览</strong>
+              <small id="image-lightbox-url"></small>
+            </div>
+            <div class="image-lightbox-actions">
+              <button id="copy-lightbox-url-btn" class="mini-action" type="button">复制 URL</button>
+              <button id="close-lightbox-btn" class="icon-btn" type="button" aria-label="关闭图片预览">×</button>
+            </div>
+          </div>
+          <div class="image-lightbox-stage">
+            <img id="image-lightbox-img" alt="放大的参考图">
+          </div>
+        </section>
+      </div>
+
+      <div id="video-lightbox" class="video-lightbox" role="dialog" aria-modal="true" aria-labelledby="video-lightbox-title" hidden>
+        <div class="video-lightbox-backdrop" data-video-lightbox-close></div>
+        <section class="video-lightbox-panel">
+          <div class="video-lightbox-head">
+            <div>
+              <span class="panel-kicker">REFERENCE VIDEO</span>
+              <strong id="video-lightbox-title">参考视频预览</strong>
+              <small id="video-lightbox-url"></small>
+            </div>
+            <div class="video-lightbox-actions">
+              <button id="copy-video-lightbox-url-btn" class="mini-action" type="button">复制 URL</button>
+              <button id="close-video-lightbox-btn" class="icon-btn" type="button" aria-label="关闭视频预览">×</button>
+            </div>
+          </div>
+          <div class="video-lightbox-stage">
+            <video id="video-lightbox-player" controls playsinline preload="metadata"></video>
+          </div>
+        </section>
+      </div>
+
+      <button id="back-to-top-btn" class="back-to-top-btn" type="button" aria-label="回到顶部" title="回到顶部">↑</button>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "日系女装广告剪辑导演"
+  short_description: "同步SOSOVE面板标签素材到ChatCut，并审核日系女装广告成片"
+  default_prompt: "使用 $japanese-fashion-video-editor 按面板批次或标签选择素材，同步到ChatCut并制作可编辑混剪。"

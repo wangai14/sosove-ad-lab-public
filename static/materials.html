@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 视频素材库</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/materials.js"></script>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>视频素材库</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="素材批次导航">
+        <a class="nav-link" href="/index.html">创作工作台</a>
+        <a class="nav-link operations-nav-link" href="/operations.html">运行中心</a>
+        <a class="nav-link translate-nav-link" href="/prompt-translate.html">提示词翻译</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <a class="nav-link active" href="/materials.html">视频素材库</a>
+        <a class="nav-link chatcut-nav-link" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link" href="/accounts.html" data-auth-admin-only>账号管理</a>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong data-auth-username>检测中</strong></span>
+        <span><b>LIBRARY</b><strong id="material-total-state">0 个视频</strong></span>
+        <span><b>BATCH</b><strong id="material-active-state">默认批次</strong></span>
+        <button id="material-refresh-btn" class="icon-btn" type="button" title="刷新素材统计">↻</button>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="material-page-shell">
+      <section class="material-page-heading">
+        <div>
+          <p class="eyebrow">AI EDIT MATERIALS</p>
+          <h1>AI 剪辑视频素材库</h1>
+        </div>
+        <a class="outline-action link-action" href="/index.html">回到创作工作台</a>
+      </section>
+
+      <nav class="material-section-nav" aria-label="素材库二级导航">
+        <a href="#material-upload-section">素材上传</a>
+        <a class="manual-cut" href="#material-manual-cut-section">手动分段</a>
+        <a href="#material-library-section">素材库</a>
+        <a href="#material-auto-pool-section">自动混剪</a>
+        <a href="#material-workbench-section">素材筛选</a>
+      </nav>
+
+      <section class="material-today-workbench" aria-label="今日剪辑工作台">
+        <div class="material-today-summary">
+          <div>
+            <span class="panel-kicker">TODAY'S WORKBENCH</span>
+            <strong>当前批次下一步</strong>
+            <small id="material-workflow-next-detail">正在读取素材状态...</small>
+          </div>
+          <button id="material-workflow-next-btn" class="primary-action" type="button">查看下一步</button>
+        </div>
+        <div class="material-today-metrics" aria-label="当前批次工作统计">
+          <span><b id="material-workflow-batch-count">0</b><em>批次视频</em></span>
+          <span><b id="material-workflow-pending-count">0</b><em>待分析</em></span>
+          <span><b id="material-workflow-ready-count">0</b><em>优质候选</em></span>
+          <span><b id="material-workflow-match-score">0%</b><em>文案匹配</em></span>
+        </div>
+        <div id="material-workflow-steps" class="material-workflow-steps" aria-label="六步成片流程">
+          <button type="button" data-step="upload" data-target="#material-upload-section"><i>1</i><span><strong>导入素材</strong><small>上传或引用 NAS</small></span></button>
+          <button type="button" data-step="analyze" data-action="analyze"><i>2</i><span><strong>AI 分析</strong><small>逐秒打标评分</small></span></button>
+          <button type="button" data-step="review" data-target="#material-workbench-section"><i>3</i><span><strong>人工复核</strong><small>确认优质片段</small></span></button>
+          <button type="button" data-step="copy" data-target="#material-product-selling-points-input"><i>4</i><span><strong>输入文案</strong><small>一行一句脚本</small></span></button>
+          <button type="button" data-step="match" data-action="match"><i>5</i><span><strong>匹配预剪</strong><small>文案寻找画面</small></span></button>
+          <button type="button" data-step="draft" data-target="#material-product-preview-list"><i>6</i><span><strong>生成草稿</strong><small>检查后导出</small></span></button>
+        </div>
+      </section>
+
+      <section class="material-ops-panel" aria-label="批次上传视频素材控制台">
+        <div class="asset-batch-head">
+          <div>
+            <span class="panel-kicker">UPLOAD INTAKE</span>
+            <strong>视频入库</strong>
+          </div>
+          <div class="asset-batch-head-actions">
+            <label class="batch-field compact">
+              <span>当前批次</span>
+              <select id="material-current-batch-select" aria-label="当前素材批次"></select>
+            </label>
+            <button id="material-new-batch-btn" class="outline-action" type="button">新建批次</button>
+          </div>
+        </div>
+
+        <div class="material-upload-layout">
+          <section class="material-tag-sidebar" aria-label="手动选择标签">
+            <div class="material-tag-card">
+              <div class="material-tag-head">
+                <span class="panel-kicker">TAG BEFORE UPLOAD</span>
+                <strong>给这一批打标签</strong>
+              </div>
+              <label class="batch-field">
+                <span>标签</span>
+                <input id="material-tag-input" type="text" maxlength="80" placeholder="待剪辑、上身、细节">
+              </label>
+              <div id="material-quick-tags" class="asset-quick-tags material-tag-groups" aria-label="快速标签"></div>
+              <div class="material-selected-tags" aria-label="已选择标签">
+                <span>已选</span>
+                <div id="material-selected-tags"></div>
+              </div>
+              <button id="material-apply-current-tags-btn" class="outline-action" type="button">应用到当前批次</button>
+            </div>
+
+            <div class="material-batch-card">
+              <label class="batch-field">
+                <span>批次名称</span>
+                <input id="material-batch-name-input" type="text" maxlength="40" placeholder="素材批次 07/03">
+              </label>
+              <div class="asset-batch-buttons">
+                <button id="material-rename-batch-btn" class="soft-action" type="button">保存名称</button>
+                <button id="material-delete-empty-batch-btn" class="soft-action danger" type="button">删除空批次</button>
+              </div>
+            </div>
+
+            <div class="material-workflow-panel" aria-label="批量分析预设">
+              <label class="batch-field">
+                <span>分析状态</span>
+                <select id="material-bulk-status-select" aria-label="批量设置分析状态">
+                  <option value="">状态不变</option>
+                  <option value="queued">待 AI 分析</option>
+                  <option value="analyzing">分析中</option>
+                  <option value="analyzed">已分析</option>
+                  <option value="ready">可剪辑</option>
+                  <option value="hold">待补拍</option>
+                  <option value="rejected">废弃</option>
+                </select>
+              </label>
+              <label class="batch-field">
+                <span>剪辑用途</span>
+                <select id="material-bulk-role-select" aria-label="批量设置剪辑用途">
+                  <option value="">用途不变</option>
+                  <option value="unassigned">待判断</option>
+                  <option value="hook">开头钩子</option>
+                  <option value="try_on">上身展示</option>
+                  <option value="detail">细节特写</option>
+                  <option value="motion">动作镜头</option>
+                  <option value="transition">转场氛围</option>
+                  <option value="proof">卖点证明</option>
+                  <option value="ending">结尾召回</option>
+                </select>
+              </label>
+              <label class="batch-field">
+                <span>优先级</span>
+                <select id="material-bulk-priority-select" aria-label="批量设置优先级">
+                  <option value="">优先级不变</option>
+                  <option value="high">高优先</option>
+                  <option value="normal">普通</option>
+                  <option value="low">低优先</option>
+                </select>
+              </label>
+              <button id="material-apply-workflow-btn" class="outline-action green" type="button">应用到当前批次</button>
+            </div>
+          </section>
+
+          <section id="material-upload-section" class="material-upload-workspace" aria-label="上传视频素材">
+            <div id="material-all-upload-zone" class="material-upload-zone material-all-upload-zone" role="button" tabindex="0" aria-label="上传视频素材">
+              <div class="material-upload-copy">
+                <span class="panel-kicker">UPLOAD VIDEOS</span>
+                <strong>上传视频素材</strong>
+                <small>只接收视频 MP4 / MOV / WebM / M4V，用于 AI 分帧分析和自动混剪。</small>
+              </div>
+              <button id="material-all-upload-btn" class="outline-action green" type="button">选择视频</button>
+              <input id="material-all-upload-input" class="sr-only" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v,.mp4,.mov,.webm,.m4v" multiple>
+            </div>
+
+            <div class="material-upload-queue" aria-live="polite">
+              <div>
+                <strong id="material-upload-queue-title">待上传（0）</strong>
+                <small id="material-upload-queue-detail">当前批次暂无新素材。</small>
+              </div>
+              <div class="material-upload-type-row" aria-label="视频素材数量">
+                <span id="material-upload-video-count">视频 0</span>
+              </div>
+            </div>
+
+            <div class="material-analysis-panel" aria-label="AI 分析操作">
+              <div class="material-analysis-head">
+                <span class="panel-kicker">AI ANALYSIS</span>
+                <strong>上传后处理</strong>
+              </div>
+              <div class="material-analysis-actions">
+                <button id="material-sync-uploads-btn" class="soft-action" type="button">同步 uploads</button>
+                <button id="material-analyze-queued-btn" class="outline-action green" type="button">Skill 分析素材</button>
+                <button id="material-analyze-force-btn" class="outline-action" type="button">重跑视频分析</button>
+              </div>
+              <small id="material-analysis-status">分析结果会写入 Obsidian 的 analysis 目录。</small>
+              <div class="material-analysis-queue" aria-label="分析任务队列">
+                <div class="material-analysis-queue-head">
+                  <strong>分析任务队列</strong>
+                  <button id="material-clear-analysis-queue-btn" class="mini-action" type="button">清空记录</button>
+                </div>
+                <div id="material-analysis-queue-summary" class="material-analysis-queue-summary">暂无分析任务</div>
+                <div id="material-analysis-queue-list" class="material-analysis-queue-list"></div>
+              </div>
+            </div>
+
+            <div class="material-url-card">
+              <textarea id="material-url-import-input" class="material-url-import" rows="3" placeholder="粘贴共享云盘地址或视频直链，每行一个"></textarea>
+              <button id="material-import-urls-btn" class="outline-action green" type="button">导入云盘并分析</button>
+              <small>公开直链会下载到 Obsidian；普通分享页会尝试提取视频链接。</small>
+            </div>
+
+            <div class="material-url-card">
+              <textarea id="material-local-folder-input" class="material-url-import" rows="3" placeholder="粘贴 NAS 或本地视频文件夹路径，例如 \\server\share\product-videos"></textarea>
+              <button id="material-import-folder-btn" class="outline-action green" type="button">引用 NAS 并分析</button>
+              <small>引用模式不会复制原视频，只把路径、标签、抽帧和分析结果写入 Obsidian。</small>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="material-library-section" class="material-library-panel" aria-label="素材批次库">
+        <div class="asset-batch-metrics material-metrics" aria-label="素材统计">
+          <article>
+            <span>全部视频</span>
+            <strong id="material-total-count">0</strong>
+          </article>
+          <article>
+            <span>当前批次</span>
+            <strong id="material-current-batch-count">0</strong>
+          </article>
+          <article>
+            <span>已打标签</span>
+            <strong id="material-tagged-count">0</strong>
+          </article>
+          <article>
+            <span>待 AI 分析</span>
+            <strong id="material-queued-count">0</strong>
+          </article>
+          <article>
+            <span>可剪辑</span>
+            <strong id="material-ready-count">0</strong>
+          </article>
+          <article>
+            <span>已分析</span>
+            <strong id="material-analyzed-count">0</strong>
+          </article>
+          <article>
+            <span>视频素材</span>
+            <strong id="material-video-count">0</strong>
+          </article>
+          <article>
+            <span>异常待核</span>
+            <strong id="material-hold-count">0</strong>
+          </article>
+          <article>
+            <span>未分批</span>
+            <strong id="material-unbatched-count">0</strong>
+          </article>
+        </div>
+        <div class="material-library-maintenance" aria-label="素材库维护">
+          <div>
+            <span class="panel-kicker">LIBRARY MAINTENANCE</span>
+            <strong>素材库维护</strong>
+            <small id="material-clear-library-status">清空只会移除面板记录和自动混剪候选池，不删除 NAS 或 Obsidian 中的原视频文件。</small>
+          </div>
+          <button id="material-clear-library-btn" class="mini-action danger" type="button">清空素材库</button>
+        </div>
+
+        <div class="material-pipeline-grid" aria-label="自动剪辑素材池">
+          <section id="material-auto-pool-section" class="material-pipeline-panel material-auto-pool-panel" aria-label="自动剪辑候选池">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">AUTO EDIT POOL</span>
+                <strong>自动混剪候选池</strong>
+              </div>
+              <div class="material-panel-actions">
+                <button id="material-show-auto-pool-btn" class="mini-action" type="button">查看候选</button>
+                <button id="material-generate-jianying-draft-btn" class="mini-action primary" type="button">生成剪映草稿</button>
+              </div>
+            </div>
+            <div class="material-pipeline-metrics">
+              <span><b id="material-auto-pool-count">0</b><em>候选</em></span>
+              <span><b id="material-auto-pool-duration">0s</b><em>总时长</em></span>
+              <span><b id="material-auto-pool-high-count">0</b><em>智能优选</em></span>
+            </div>
+            <div id="material-auto-pool-roles" class="material-role-meter" aria-label="剪辑用途分布"></div>
+            <div class="material-product-film-panel" aria-label="按产品一键成片">
+              <div class="material-product-film-head">
+                <div>
+                  <span class="panel-kicker">PRODUCT FILM</span>
+                  <strong>按产品一键成片</strong>
+                </div>
+                <div class="material-product-film-actions">
+                  <span id="material-product-draft-save-state" class="material-product-draft-save-state">草稿待保存</span>
+                  <button id="material-restore-product-draft-btn" class="mini-action" type="button">恢复草稿</button>
+                  <button id="material-clear-product-draft-btn" class="mini-action" type="button">清空草稿</button>
+                  <button id="material-export-rough-cut-btn" class="mini-action" type="button">导出预剪素材</button>
+                  <button id="material-generate-product-film-btn" class="mini-action primary" type="button">一键产品成片</button>
+                </div>
+              </div>
+              <div class="material-product-film-metrics">
+                <span><b id="material-product-film-clip-count">0</b><em>智能片段</em></span>
+                <span><b id="material-product-film-duration">0s</b><em>预计成片</em></span>
+              </div>
+              <div id="material-product-quality-gate" class="material-product-quality-gate" data-tone="blocked" role="status" aria-live="polite">
+                <div>
+                  <span>生成质量门槛</span>
+                  <strong id="material-product-quality-label">等待素材评估</strong>
+                </div>
+                <b id="material-product-quality-score">0%</b>
+                <progress id="material-product-quality-progress" max="100" value="0">0%</progress>
+                <small id="material-product-quality-detail">至少覆盖一半核心镜头角色后才能生成。</small>
+                <div id="material-product-quality-checks" class="material-product-quality-checks" aria-label="生成前质量检查"></div>
+              </div>
+              <div class="material-product-film-grid">
+                <label>
+                  <span>产品名</span>
+                  <input id="material-product-name-input" type="text" maxlength="80" placeholder="默认使用当前批次名">
+                </label>
+                <label>
+                  <span>成片时长</span>
+                  <select id="material-product-duration-select">
+                    <option value="15">15 秒</option>
+                    <option value="30" selected>30 秒</option>
+                    <option value="45">45 秒</option>
+                    <option value="60">60 秒</option>
+                  </select>
+                </label>
+                <label>
+                  <span>素材范围</span>
+                  <select id="material-product-scope-select">
+                    <option value="current" selected>当前批次</option>
+                    <option value="filtered">当前筛选</option>
+                    <option value="all">全部素材</option>
+                  </select>
+                </label>
+                <label>
+                  <span>成片结构</span>
+                  <select id="material-product-style-select">
+                    <option value="ecommerce" selected>电商卖点</option>
+                    <option value="tryon">上身展示</option>
+                    <option value="detail">细节质感</option>
+                  </select>
+                </label>
+                <label>
+                  <span>剪辑节奏</span>
+                  <select id="material-edit-pace-select">
+                    <option value="standard" selected>标准电商</option>
+                    <option value="fast">快节奏爆款</option>
+                    <option value="calm">慢节奏质感</option>
+                  </select>
+                </label>
+                <label>
+                  <span>转场方式</span>
+                  <select id="material-transition-style-select">
+                    <option value="auto" selected>智能转场</option>
+                    <option value="dynamic">快切动感</option>
+                    <option value="soft">柔和叠化</option>
+                    <option value="minimal">少转场</option>
+                  </select>
+                </label>
+                <label>
+                  <span>字幕风格</span>
+                  <select id="material-caption-style-select">
+                    <option value="clean" selected>精简字幕</option>
+                    <option value="sales">卖点字幕</option>
+                    <option value="none">不加导演字幕</option>
+                  </select>
+                </label>
+              </div>
+              <textarea id="material-product-selling-points-input" class="material-url-import" rows="2" maxlength="1000" placeholder="一行一句文案/脚本/卖点，系统会按每句内容匹配对应视频片段；可留空自动生成"></textarea>
+              <div class="material-product-copy-tools">
+                <button id="material-copy-autofit-btn" class="mini-action" type="button">按时长压缩脚本</button>
+                <button id="material-match-precut-btn" class="mini-action primary" type="button">AI 匹配预剪</button>
+              </div>
+              <div class="material-director-monitor-panel" aria-label="日本剪辑导演监控">
+                <div class="material-director-monitor-head">
+                  <div>
+                    <span class="panel-kicker">JAPAN EDITOR QA</span>
+                    <strong>日本剪辑导演监控</strong>
+                  </div>
+                  <div class="material-director-monitor-buttons">
+                    <button id="material-apply-direction-plan-btn" class="mini-action primary" type="button">应用导演方案</button>
+                    <button id="material-refresh-direction-monitor-btn" class="mini-action" type="button">刷新监控</button>
+                  </div>
+                </div>
+                <div class="material-director-monitor-score">
+                  <strong id="material-direction-score">0</strong>
+                  <span id="material-direction-status">等待导演判断</span>
+                  <em id="material-direction-updated">未同步</em>
+                </div>
+                <div id="material-direction-roles" class="material-director-role-list"></div>
+                <div id="material-direction-actions" class="material-director-actions"></div>
+              </div>
+              <div class="material-product-preview-panel" aria-label="成片片段预览">
+                <div class="material-product-preview-head">
+                  <div>
+                    <span class="panel-kicker">SHOT PLAN</span>
+                    <strong>生成前片段与文案</strong>
+                  </div>
+                  <small id="material-product-preview-summary">先确认片段顺序，再生成剪映草稿。</small>
+                </div>
+                <div id="material-product-preview-list" class="material-product-preview-list" aria-live="polite"></div>
+              </div>
+              <small id="material-product-film-status">当前批次会优先选择高分智能片段生成可编辑剪映草稿。</small>
+              <div id="material-rough-cut-result" class="material-rough-cut-result" hidden aria-live="polite"></div>
+            </div>
+            <div id="material-manual-cut-section" class="material-manual-clip-panel" aria-label="手动选择剪辑片段">
+              <div class="material-manual-clip-head">
+                <div class="material-manual-clip-heading-copy">
+                  <span class="panel-kicker">MANUAL CUT DRAFT</span>
+                  <strong>手动分段草稿</strong>
+                  <small>源素材 / 入出点 / 片段标签</small>
+                </div>
+                <div class="material-manual-head-actions">
+                  <span class="material-manual-editable-badge"><i aria-hidden="true"></i>可编辑草稿</span>
+                  <button id="material-clear-manual-clips-btn" class="mini-action danger" type="button">清空</button>
+                </div>
+              </div>
+              <div class="material-manual-source-workspace">
+                <div class="material-manual-source-toolbar">
+                  <label>
+                    <span>上传视频源</span>
+                    <select id="material-manual-source-select" aria-label="手动分段视频源"></select>
+                  </label>
+                  <div class="material-manual-source-status" aria-live="polite">
+                    <small id="material-manual-source-status">上传视频后会自动出现在这里。</small>
+                  </div>
+                </div>
+                <div class="material-manual-source-editor">
+                  <div class="material-manual-source-stage">
+                    <div class="material-manual-stage-head">
+                      <span>SOURCE MONITOR</span>
+                      <em>9:16</em>
+                    </div>
+                    <video id="material-manual-source-player" controls playsinline preload="metadata"></video>
+                  </div>
+                  <div class="material-manual-range-controls">
+                    <div class="material-manual-range-head">
+                      <div>
+                        <span>CLIP RANGE</span>
+                        <strong>选区控制</strong>
+                      </div>
+                      <div class="material-manual-range-duration">
+                        <span>选区时长</span>
+                        <strong id="material-manual-range-duration">6.0s</strong>
+                      </div>
+                    </div>
+                    <label class="material-manual-range-field">
+                      <span><b>IN</b> 入点</span>
+                      <input id="material-manual-in-input" type="number" min="0" step="0.1" value="0">
+                    </label>
+                    <button id="material-manual-set-in-btn" class="soft-action" type="button">设为当前</button>
+                    <label class="material-manual-range-field">
+                      <span><b>OUT</b> 出点</span>
+                      <input id="material-manual-out-input" type="number" min="0" step="0.1" value="6">
+                    </label>
+                    <button id="material-manual-set-out-btn" class="soft-action" type="button">设为当前</button>
+                    <button id="material-manual-add-range-btn" class="primary-action" type="button">添加选区到草稿</button>
+                  </div>
+                </div>
+              </div>
+              <div class="material-manual-clip-metrics">
+                <span><b id="material-manual-clip-count">0</b><em>已选片段</em></span>
+                <span><b id="material-manual-clip-duration">0s</b><em>预计时长</em></span>
+              </div>
+              <div class="material-manual-timeline" aria-label="手动分段草稿时间线">
+                <div class="material-manual-timeline-head">
+                  <div><i aria-hidden="true"></i><strong>VIDEO TRACK 01</strong></div>
+                  <small id="material-manual-timeline-status">点击片段后可手动打标签</small>
+                </div>
+                <div id="material-manual-timeline-ruler" class="material-manual-timeline-ruler" aria-hidden="true"></div>
+                <div id="material-manual-timeline-track" class="material-manual-timeline-track"></div>
+              </div>
+              <div id="material-manual-selected-editor" class="material-manual-selected-editor" hidden>
+                <div class="material-manual-selected-head">
+                  <div>
+                    <span>当前片段</span>
+                    <strong id="material-manual-selected-label">请选择时间线片段</strong>
+                  </div>
+                  <div>
+                    <button id="material-manual-selected-preview-btn" class="mini-action" type="button">预览</button>
+                    <button id="material-manual-selected-remove-btn" class="mini-action" type="button">删除</button>
+                  </div>
+                </div>
+                <div class="material-manual-selected-fields">
+                  <label>
+                    <span>剪辑用途</span>
+                    <select id="material-manual-selected-role" aria-label="当前片段剪辑用途"></select>
+                  </label>
+                  <label>
+                    <span>自定义标签</span>
+                    <div class="material-manual-tag-input-row">
+                      <input id="material-manual-selected-tag-input" type="text" maxlength="80" placeholder="细节、斜扣、开头可用">
+                      <button id="material-manual-apply-tag-btn" class="outline-action" type="button">添加</button>
+                    </div>
+                  </label>
+                </div>
+                <div id="material-manual-quick-tags" class="material-manual-quick-tags" aria-label="片段快捷标签"></div>
+                <div id="material-manual-selected-tags" class="material-manual-selected-tags" aria-label="当前片段标签"></div>
+              </div>
+              <div id="material-manual-clip-list" class="material-manual-clip-list" aria-live="polite"></div>
+            </div>
+            <div class="material-draft-controls" aria-label="草稿文案和配音">
+              <textarea id="material-draft-copy-input" class="material-url-import" rows="3" placeholder="日语配音/字幕文案，可留空自动生成日本广告脚本"></textarea>
+              <div class="material-draft-provider">
+                <label>
+                  <span>配音来源</span>
+                  <select id="material-draft-voice-provider-select">
+                    <option value="edge" selected>日语配音</option>
+                    <option value="elevenlabs">ElevenLabs</option>
+                  </select>
+                </label>
+              </div>
+              <div class="material-draft-options">
+                <label>
+                  <span>声音</span>
+                  <select id="material-draft-speaker-select">
+                    <option value="ja-JP-NanamiNeural" selected>日本女声 Nanami</option>
+                    <option value="ja-JP-KeitaNeural">日本男声 Keita</option>
+                  </select>
+                </label>
+                <label class="material-draft-toggle">
+                  <input id="material-draft-voiceover-toggle" type="checkbox" checked>
+                  <span>生成配音</span>
+                </label>
+              </div>
+              <div id="material-elevenlabs-fields" class="material-elevenlabs-fields" hidden>
+                <label>
+                  <span>ElevenLabs API Key</span>
+                  <input id="material-elevenlabs-api-key-input" type="password" autocomplete="off" placeholder="粘贴 Key，留空使用已保存 Key">
+                </label>
+                <label>
+                  <span>Voice ID</span>
+                  <input id="material-elevenlabs-voice-id-input" type="text" placeholder="日语 Voice ID，免费账号共享声音可能不可用">
+                </label>
+                <label>
+                  <span>Model</span>
+                  <input id="material-elevenlabs-model-input" type="text" value="eleven_multilingual_v2">
+                </label>
+                <small id="material-elevenlabs-status">ElevenLabs 音频会作为独立音频轨写入剪映；若共享日语声音需要付费，请优先使用默认日语配音。</small>
+              </div>
+            </div>
+            <small id="material-auto-pool-updated">暂无分析结果</small>
+            <small id="material-jianying-draft-status">剪映草稿会写入剪映项目目录，并同步索引到 Obsidian。</small>
+          </section>
+
+          <section class="material-pipeline-panel material-invalid-panel" aria-label="问题视频素材">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">INTAKE QA</span>
+                <strong>问题素材</strong>
+              </div>
+              <button id="material-show-invalid-btn" class="mini-action" type="button">查看问题</button>
+            </div>
+            <div class="material-invalid-summary">
+              <strong id="material-invalid-count">0</strong>
+              <span>需要处理</span>
+            </div>
+            <div id="material-invalid-list" class="material-invalid-list"></div>
+          </section>
+        </div>
+
+        <div id="material-batch-list" class="asset-batch-list material-batch-list" aria-live="polite"></div>
+
+        <div id="material-workbench-section" class="material-workbench-grid" aria-label="分析工作台">
+          <section class="material-priority-panel" aria-label="优先剪辑素材">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">READY LANE</span>
+                <strong>优先剪辑候选</strong>
+              </div>
+              <button id="material-show-ready-btn" class="mini-action" type="button">查看可剪辑</button>
+            </div>
+            <div id="material-priority-list" class="material-priority-list"></div>
+          </section>
+          <section class="material-review-panel" aria-label="需要复核的素材">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">QA QUEUE</span>
+                <strong>异常和待补拍</strong>
+              </div>
+              <button id="material-show-hold-btn" class="mini-action" type="button">查看异常</button>
+            </div>
+            <div id="material-workbench-alerts" class="material-workbench-alerts"></div>
+          </section>
+        </div>
+
+        <div class="asset-filter-bar material-filter-bar" aria-label="素材筛选">
+          <label class="batch-field compact">
+            <span>查看批次</span>
+            <select id="material-batch-filter-select" aria-label="查看素材批次"></select>
+          </label>
+          <label class="batch-field compact">
+            <span>标签筛选</span>
+            <select id="material-tag-filter-select" aria-label="按标签筛选"></select>
+          </label>
+          <label class="batch-field compact">
+            <span>状态</span>
+            <select id="material-status-filter-select" aria-label="按分析状态筛选"></select>
+          </label>
+          <label class="batch-field compact">
+            <span>用途</span>
+            <select id="material-role-filter-select" aria-label="按剪辑用途筛选"></select>
+          </label>
+          <label class="batch-field compact">
+            <span>搜索</span>
+            <input id="material-search-input" type="search" placeholder="文件名 / URL / 标签">
+          </label>
+          <button id="material-clear-filter-btn" class="soft-action" type="button">清除筛选</button>
+          <strong id="material-filter-count">0 个素材</strong>
+        </div>
+
+        <div id="material-asset-list" class="material-asset-list" aria-live="polite"></div>
+      </section>
+
+      <div id="material-video-lightbox" class="video-lightbox" role="dialog" aria-modal="true" aria-labelledby="material-video-lightbox-title" hidden>
+        <div class="video-lightbox-backdrop" data-material-video-lightbox-close></div>
+        <section class="video-lightbox-panel">
+          <div class="video-lightbox-head">
+            <div>
+              <span class="panel-kicker">MATERIAL VIDEO</span>
+              <strong id="material-video-lightbox-title">素材视频预览</strong>
+              <small id="material-video-lightbox-url"></small>
+            </div>
+            <div class="video-lightbox-actions">
+              <button id="material-copy-video-lightbox-url-btn" class="mini-action" type="button">复制 URL</button>
+              <button id="material-close-video-lightbox-btn" class="icon-btn" type="button" aria-label="关闭视频预览">×</button>
+            </div>
+          </div>
+          <div class="video-lightbox-stage">
+            <video id="material-video-lightbox-player" controls playsinline preload="metadata"></video>
+            <div class="video-seek-controls" aria-label="视频快进控制">
+              <button id="material-rewind-video-btn" class="video-seek-btn" type="button">快退 10s</button>
+              <button id="material-forward-video-btn" class="video-seek-btn primary" type="button">快进 10s</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="material-reverse-prompt-dialog" class="material-reverse-prompt-dialog" role="dialog" aria-modal="true" aria-labelledby="material-reverse-prompt-title" hidden>
+        <div class="material-reverse-prompt-backdrop" data-material-reverse-prompt-close></div>
+        <section class="material-reverse-prompt-panel">
+          <div class="material-reverse-prompt-head">
+            <div>
+              <span class="panel-kicker">SHOT TO PROMPT</span>
+              <strong id="material-reverse-prompt-title">从优秀片段反推视频提示词</strong>
+              <small id="material-reverse-prompt-source">等待选择智能片段</small>
+            </div>
+            <button id="material-close-reverse-prompt-btn" class="icon-btn" type="button" aria-label="关闭反推提示词面板">×</button>
+          </div>
+
+          <div class="material-reverse-prompt-body">
+            <div id="material-reverse-prompt-meta" class="material-reverse-prompt-meta" aria-label="片段分析摘要"></div>
+
+            <div class="material-reverse-prompt-controls">
+              <fieldset class="material-reverse-prompt-mode">
+                <legend>生成方式</legend>
+                <label>
+                  <input type="radio" name="material-reverse-prompt-mode" value="rebuild" checked>
+                  <span><b>复刻镜头语言</b><small>只复用动作、景别、运镜和节奏，生成独立 T2V Prompt</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="material-reverse-prompt-mode" value="reference">
+                  <span><b>原片动作参考</b><small>把原视频作为 @Video1，只迁移动作和镜头，不复制人物与 Logo</small></span>
+                </label>
+              </fieldset>
+
+              <label class="material-reverse-prompt-field wide">
+                <span>新视频主体 / 商品</span>
+                <input id="material-reverse-prompt-subject" type="text" maxlength="240" placeholder="例如：日本女性展示同款斜扣阔腿牛仔裤">
+              </label>
+              <label class="material-reverse-prompt-field">
+                <span>目标市场</span>
+                <select id="material-reverse-prompt-market">
+                  <option value="日本">日本</option>
+                  <option value="美国">美国</option>
+                  <option value="英国">英国</option>
+                  <option value="韩国">韩国</option>
+                  <option value="法国">法国</option>
+                  <option value="德国">德国</option>
+                  <option value="西班牙">西班牙</option>
+                  <option value="意大利">意大利</option>
+                  <option value="巴西">巴西</option>
+                </select>
+              </label>
+              <label class="material-reverse-prompt-field">
+                <span>内容语言</span>
+                <select id="material-reverse-prompt-language">
+                  <option value="日语">日语</option>
+                  <option value="美式英语">美式英语</option>
+                  <option value="英式英语">英式英语</option>
+                  <option value="韩语">韩语</option>
+                  <option value="法语">法语</option>
+                  <option value="德语">德语</option>
+                  <option value="西班牙语">西班牙语</option>
+                  <option value="意大利语">意大利语</option>
+                  <option value="巴西葡萄牙语">巴西葡萄牙语</option>
+                </select>
+              </label>
+            </div>
+
+            <details class="material-reverse-prompt-evidence" open>
+              <summary>反推依据</summary>
+              <p id="material-reverse-prompt-evidence"></p>
+            </details>
+
+            <label class="material-reverse-prompt-output">
+              <span>可编辑 Seedance Prompt</span>
+              <textarea id="material-reverse-prompt-output" rows="9" maxlength="10000" spellcheck="false"></textarea>
+            </label>
+
+            <div class="material-reverse-prompt-footer">
+              <span id="material-reverse-prompt-status">已根据分镜分析生成基础 Prompt</span>
+              <div>
+                <button id="material-rebuild-reverse-prompt-btn" class="soft-action" type="button">重新反推</button>
+                <button id="material-skill-reverse-prompt-btn" class="outline-action" type="button">Seedance Skill 精修</button>
+                <button id="material-copy-reverse-prompt-btn" class="outline-action" type="button">复制</button>
+                <button id="material-send-reverse-prompt-btn" class="primary-action" type="button">发送到 AI 智能创作</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div id="material-toast" class="toast" role="status" aria-live="polite"></div>
+    </main>
+    <button id="material-back-to-top-btn" class="back-to-top-btn" type="button" aria-label="回到顶部" title="回到顶部">↑</button>
+  </body>
+</html>

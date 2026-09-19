@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 登录</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/login.js"></script>
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <section class="auth-panel" aria-label="账号登录">
+        <div class="auth-brand">
+          <span class="brand-mark">S</span>
+          <div>
+            <strong>SOSOVE Engine</strong>
+            <small id="auth-mode-kicker">账号登录</small>
+          </div>
+        </div>
+
+        <div class="auth-copy">
+          <p class="eyebrow">PRIVATE WORKSPACE</p>
+          <h1 id="auth-title">登录素材工作台</h1>
+          <p id="auth-subtitle">输入账号和密码后才能访问视频素材库、上传接口和 AI 分析结果。</p>
+        </div>
+
+        <form id="auth-form" class="auth-form" autocomplete="on">
+          <label>
+            <span>账号</span>
+            <input id="auth-username" name="username" type="text" inputmode="email" autocomplete="username" placeholder="admin" required>
+          </label>
+          <label>
+            <span>密码</span>
+            <div class="password-field">
+              <input id="auth-password" name="password" type="password" autocomplete="current-password" placeholder="至少 8 位" required>
+              <button id="auth-password-toggle" class="password-toggle" type="button" aria-label="显示密码" aria-pressed="false">显示</button>
+            </div>
+          </label>
+          <button id="auth-submit-btn" class="outline-action green" type="submit">登录</button>
+          <small class="auth-hint">登录后才能访问视频素材、NAS 登记、AI 分析、剪辑任务和账号管理。</small>
+          <p id="auth-message" class="auth-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

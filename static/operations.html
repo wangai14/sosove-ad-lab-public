@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 运行中心</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/operations.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/operations.js"></script>
+  </head>
+  <body class="operations-page">
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>运行中心</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="运行中心导航">
+        <a class="nav-link" href="/index.html">创作工作台</a>
+        <a class="nav-link operations-nav-link active" href="/operations.html">运行中心</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <a class="nav-link" href="/materials.html">视频素材库</a>
+        <a class="nav-link chatcut-nav-link" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link" href="/accounts.html" data-auth-admin-only>账号管理</a>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong data-auth-username>检测中</strong></span>
+        <span><b>ACTIVE</b><strong id="operations-active-state">0</strong></span>
+        <span><b>ALERT</b><strong id="operations-alert-state">0</strong></span>
+        <button id="operations-nav-refresh-btn" class="icon-btn" type="button" title="刷新运行中心" aria-label="刷新运行中心">↻</button>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="operations-shell">
+      <section class="operations-heading">
+        <div>
+          <p class="eyebrow">PRODUCTION OPERATIONS</p>
+          <h1>视频生产运行中心</h1>
+          <small id="operations-updated-at">正在读取 Obsidian 任务数据</small>
+        </div>
+        <div class="operations-heading-actions">
+          <a class="outline-action link-action" href="/editing-tasks.html">新建剪辑任务</a>
+          <a class="outline-action green link-action" href="/materials.html">进入素材库</a>
+        </div>
+      </section>
+
+      <section class="operations-metrics" aria-label="运行指标">
+        <article><span>ACTIVE</span><b id="operations-active-count">0</b><small>进行中</small></article>
+        <article><span>ATTENTION</span><b id="operations-attention-count">0</b><small>需要处理</small></article>
+        <article><span>COMPLETED</span><b id="operations-completed-count">0</b><small>已完成记录</small></article>
+        <article><span>READY CLIPS</span><b id="operations-ready-count">0</b><small>可剪辑视频</small></article>
+        <article><span>DRAFTS</span><b id="operations-draft-count">0</b><small>可编辑草稿</small></article>
+      </section>
+
+      <section class="operations-main-grid">
+        <section class="operations-job-panel" aria-label="统一任务列表">
+          <div class="operations-panel-head">
+            <div>
+              <span class="panel-kicker">UNIFIED JOBS</span>
+              <strong>统一任务队列</strong>
+              <small id="operations-job-summary">正在汇总任务</small>
+            </div>
+            <button id="operations-refresh-btn" class="mini-action" type="button">刷新</button>
+          </div>
+          <div class="operations-filters">
+            <label>
+              <span class="sr-only">搜索任务</span>
+              <input id="operations-search-input" type="search" placeholder="搜索产品、批次、任务 ID">
+            </label>
+            <label>
+              <span class="sr-only">任务类型</span>
+              <select id="operations-category-filter" aria-label="任务类型">
+                <option value="all">全部类型</option>
+                <option value="editing">剪辑派单</option>
+                <option value="analysis">素材分析</option>
+                <option value="chatcut">ChatCut 同步</option>
+                <option value="draft">剪映草稿</option>
+              </select>
+            </label>
+            <label>
+              <span class="sr-only">任务状态</span>
+              <select id="operations-status-filter" aria-label="任务状态">
+                <option value="all">全部状态</option>
+                <option value="active">进行中</option>
+                <option value="attention">需处理</option>
+                <option value="done">已完成</option>
+              </select>
+            </label>
+          </div>
+          <div id="operations-job-list" class="operations-job-list" aria-live="polite"></div>
+        </section>
+
+        <aside class="operations-side-column">
+          <section class="operations-executor-panel" aria-label="ChatCut 执行器状态">
+            <div class="operations-panel-head compact">
+              <div>
+                <span class="panel-kicker">CHATCUT EXECUTOR</span>
+                <strong>同步执行器</strong>
+              </div>
+              <span id="operations-executor-chip" class="operations-health-chip" data-tone="idle">检测中</span>
+            </div>
+            <div class="operations-executor-state">
+              <b id="operations-executor-label">正在读取心跳</b>
+              <small id="operations-executor-detail">Obsidian · data/chatcut-executor.json</small>
+            </div>
+            <a class="mini-action link-action" href="/chatcut.html">查看同步队列</a>
+          </section>
+
+          <section class="operations-alert-panel" aria-label="待处理告警">
+            <div class="operations-panel-head compact">
+              <div>
+                <span class="panel-kicker">ATTENTION</span>
+                <strong>待处理告警</strong>
+              </div>
+              <b id="operations-alert-count">0</b>
+            </div>
+            <div id="operations-alert-list" class="operations-alert-list"></div>
+          </section>
+
+          <section class="operations-data-panel" aria-label="Obsidian 数据健康">
+            <div class="operations-panel-head compact">
+              <div>
+                <span class="panel-kicker">DATA HEALTH</span>
+                <strong>Obsidian 数据健康</strong>
+              </div>
+            </div>
+            <div id="operations-data-health" class="operations-data-health"></div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="operations-coverage-panel" aria-label="素材角色覆盖">
+        <div class="operations-panel-head">
+          <div>
+            <span class="panel-kicker">MATERIAL COVERAGE</span>
+            <strong>产品批次素材覆盖</strong>
+            <small>开头、上身、细节、动作、证明和结尾六类镜头</small>
+          </div>
+          <a class="mini-action link-action" href="/materials.html">管理素材标签</a>
+        </div>
+        <div class="operations-coverage-scroll" tabindex="0" aria-label="镜头角色覆盖矩阵">
+          <div class="operations-coverage-labels" aria-hidden="true">
+            <span>批次</span><span>开头</span><span>上身</span><span>细节</span><span>动作</span><span>证明</span><span>结尾</span><span>覆盖</span>
+          </div>
+          <div id="operations-coverage-list" class="operations-coverage-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="operations-toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>SOSOVE Ad Lab · 广告视频工作台</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/ad-forge.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/ad-forge.js"></script>
+  </head>
+  <body>
+    <div class="paper-grain" aria-hidden="true"></div>
+    <header class="app-header">
+      <a class="brand" href="/" aria-label="返回 SOSOVE 智能创作中心">
+        <span class="brand-seal">S</span>
+        <span class="brand-copy">
+          <strong>SOSOVE Ad Lab</strong>
+          <small>広告クリエイティブ工房</small>
+        </span>
+      </a>
+      <div class="header-center">
+        <span class="edition-tag">AD PRODUCTION · TOKYO</span>
+        <span class="project-crumb" id="project-crumb">未选择项目</span>
+        <button class="text-button" id="archive-project-button" type="button">归档</button>
+      </div>
+      <div class="header-actions">
+        <span class="service-status" id="service-status"><i></i> 检测服务</span>
+        <span class="user-chip"><b data-auth-username>登录中</b><small data-auth-role></small></span>
+        <button class="icon-button" id="theme-density-button" type="button" title="切换紧凑视图" aria-label="切换紧凑视图">密</button>
+        <button class="text-button" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <nav class="workflow-nav" aria-label="广告视频生成步骤">
+      <button class="workflow-step is-active" type="button" data-step="1">
+        <span>01</span><strong>需求</strong><small>Brief</small>
+      </button>
+      <i aria-hidden="true"></i>
+      <button class="workflow-step" type="button" data-step="2">
+        <span>02</span><strong>分镜</strong><small>Storyboard</small>
+      </button>
+      <i aria-hidden="true"></i>
+      <button class="workflow-step" type="button" data-step="3">
+        <span>03</span><strong>提示词</strong><small>Direction</small>
+      </button>
+      <i aria-hidden="true"></i>
+      <button class="workflow-step" type="button" data-step="4">
+        <span>04</span><strong>视频</strong><small>Seedance</small>
+      </button>
+      <i aria-hidden="true"></i>
+      <button class="workflow-step" type="button" data-step="5">
+        <span>05</span><strong>合成</strong><small>Timeline</small>
+      </button>
+      <div class="workflow-actions">
+        <button class="ghost-button" id="previous-step-button" type="button">← 上一步</button>
+        <button class="ghost-button" id="next-step-button" type="button">下一步 →</button>
+      </div>
+    </nav>
+
+    <main class="workspace-shell">
+      <aside class="project-rail" id="project-rail">
+        <div class="rail-head">
+          <div>
+            <p class="eyebrow">MY AD PROJECTS</p>
+            <h2>广告项目</h2>
+          </div>
+          <button class="rail-close" id="rail-close" type="button" aria-label="关闭项目栏">×</button>
+        </div>
+        <button class="new-project-button" id="new-project-button" type="button"><span>＋</span> 新建广告项目</button>
+        <label class="search-field">
+          <span>⌕</span>
+          <input id="project-search" type="search" placeholder="搜索商品或项目">
+        </label>
+        <div class="rail-filter">
+          <button class="is-active" type="button" data-project-filter="active">进行中</button>
+          <button type="button" data-project-filter="archived">已归档</button>
+        </div>
+        <div class="project-list" id="project-list" aria-live="polite"></div>
+        <div class="rail-foot">
+          <a href="/operations.html">运行中心 ↗</a>
+          <a href="/materials.html">素材库 ↗</a>
+        </div>
+      </aside>
+
+      <section class="stage-canvas">
+        <button class="mobile-rail-button" id="mobile-rail-button" type="button">项目</button>
+
+        <section class="empty-project" id="empty-project">
+          <div class="empty-mark"><span>AD</span><i>LAB</i></div>
+          <p class="eyebrow">FROM PRODUCT FACTS TO MOVING PROOF</p>
+          <h1>把商品事实，编排成<br>一条有证据的广告。</h1>
+          <p>先建立一个项目。系统会保留每个分镜、提示词、任务状态和独立视频片段。</p>
+          <button class="primary-button" id="empty-create-button" type="button">创建第一个项目</button>
+        </section>
+
+        <div class="stage-content" id="stage-content" hidden>
+          <section class="stage-panel is-active" data-stage-panel="1">
+            <header class="stage-heading">
+              <div>
+                <p class="eyebrow">01 / CREATIVE BRIEF</p>
+                <h1>先把广告说清楚。</h1>
+                <p>商品事实比空泛的“高级感”更重要。填写真实卖点，分镜才有视觉证据。</p>
+              </div>
+              <span class="stage-stamp">BRIEF<br>LOCK</span>
+            </header>
+
+            <form class="brief-layout" id="brief-form">
+              <div class="brief-primary">
+                <label class="field-label">
+                  <span>项目名称 <small>PROJECT NAME</small></span>
+                  <input id="project-name-input" name="name" type="text" maxlength="120" placeholder="例如：斜扣牛仔裤 · 通勤 A 版">
+                </label>
+                <label class="field-label">
+                  <span>商品名称 <small>PRODUCT</small></span>
+                  <input id="product-name-input" name="productName" type="text" maxlength="240" placeholder="明确到款式、颜色与结构">
+                </label>
+                <div class="product-description-editor">
+                  <label class="field-label">
+                    <span>产品描述 <small>PRODUCT DESCRIPTION</small></span>
+                    <textarea id="product-description-input" rows="7" maxlength="6000" placeholder="描述产品事实：品类、颜色、材质、结构、版型、真实卖点、目标人群、画面风格、镜头运动和氛围。填写后可交给 Seedance Skill 自动生成图片提示词与视频提示词。"></textarea>
+                  </label>
+                  <div class="skill-prompt-toolbar">
+                    <label class="skill-picker" for="prompt-skill-select">
+                      <span>⌁ Skills</span>
+                      <select id="prompt-skill-select" aria-label="提示词生成 Skill">
+                        <option value="seedance-20">Seedance 2.0</option>
+                      </select>
+                    </label>
+                    <button class="skill-generate-button" id="generate-skill-prompts-button" type="button">⚡ Skill 生成双提示词</button>
+                    <small id="prompt-skill-state">读取本机 Skill 状态中……</small>
+                  </div>
+                  <details class="service-node-panel" id="service-node-panel">
+                    <summary class="service-node-panel-head">
+                      <div>
+                        <strong>模型服务节点</strong>
+                        <span class="service-node-models" id="service-node-models">正在读取模型……</span>
+                        <small id="service-node-summary">正在读取节点配置……</small>
+                      </div>
+                      <span class="service-node-summary-toggle">节点详情</span>
+                    </summary>
+                    <div class="service-node-panel-tools"><a href="/?workspace=settings" target="_blank" rel="noopener">管理接口配置 ↗</a></div>
+                    <div class="service-node-grid">
+                      <article class="service-node-card" id="prompt-model-state" data-service-node="ai">
+                        <div class="service-node-primary">
+                          <div class="service-node-identity"><strong data-node-field="title">提示词模型节点</strong><code data-node-field="url">读取接口地址……</code></div>
+                          <span class="service-node-status" data-node-field="status">读取中</span>
+                          <button class="service-node-test" id="test-prompt-node-button" data-node-test="ai" type="button">检测节点</button>
+                        </div>
+                        <div class="service-node-diagnostics" data-node-field="diagnostics">等待检测</div>
+                        <div class="service-node-tags" aria-label="提示词节点能力"><span data-node-field="key">密钥读取中</span><span data-node-field="model">模型读取中</span><span data-node-field="protocol">Chat Completions</span></div>
+                        <p data-node-field="message">用于产品描述分析以及图片、视频双提示词生成。</p>
+                      </article>
+                      <article class="service-node-card" id="image-model-state" data-service-node="image">
+                        <div class="service-node-primary">
+                          <div class="service-node-identity"><strong data-node-field="title">生图模型节点</strong><code data-node-field="url">读取接口地址……</code></div>
+                          <span class="service-node-status" data-node-field="status">读取中</span>
+                          <button class="service-node-test" id="test-image-node-button" data-node-test="image" type="button">检测节点</button>
+                        </div>
+                        <div class="service-node-diagnostics" data-node-field="diagnostics">等待检测</div>
+                        <div class="service-node-tags" aria-label="生图节点能力"><span data-node-field="key">密钥读取中</span><span data-node-field="model">模型读取中</span><span data-node-field="protocol">Images Generations + Edits</span></div>
+                        <p data-node-field="message">用于文生图与参考图编辑，支持独立尺寸选择。</p>
+                      </article>
+                      <article class="service-node-card" id="video-model-state" data-service-node="ark">
+                        <div class="service-node-primary">
+                          <div class="service-node-identity"><strong data-node-field="title">Seedance 视频节点</strong><code data-node-field="url">读取任务地址……</code></div>
+                          <span class="service-node-status" data-node-field="status">读取中</span>
+                          <button class="service-node-test" id="test-video-node-button" data-node-test="ark" type="button">检测节点</button>
+                        </div>
+                        <div class="service-node-diagnostics" data-node-field="diagnostics">等待检测</div>
+                        <div class="service-node-tags" aria-label="视频节点能力"><span data-node-field="key">密钥读取中</span><span data-node-field="model">模型读取中</span><span data-node-field="protocol">异步视频任务</span></div>
+                        <p data-node-field="message">用于文本、图片和视频参考驱动的逐镜视频生成。</p>
+                      </article>
+                    </div>
+                  </details>
+                </div>
+                <label class="field-label field-large">
+                  <span>广告简述 <small>ONE-SENTENCE DIRECTION</small></span>
+                  <textarea id="brief-summary-input" rows="6" maxlength="6000" placeholder="目标人群、真实问题、商品如何解决、希望采用的画面与节奏……"></textarea>
+                </label>
+                <label class="field-label">
+                  <span>目标人群 <small>AUDIENCE</small></span>
+                  <input id="brief-audience-input" type="text" maxlength="800" placeholder="例如：25–40 岁日本通勤女性">
+                </label>
+                <div class="selling-point-editor">
+                  <span class="field-title">核心卖点 <small>SELLING POINTS</small></span>
+                  <div class="selling-point-row">
+                    <input id="selling-point-input" type="text" maxlength="180" placeholder="一个画面能证明的卖点">
+                    <button class="square-button" id="add-selling-point-button" type="button">添加</button>
+                  </div>
+                  <div class="chip-list" id="selling-point-list"></div>
+                </div>
+              </div>
+
+              <aside class="parameter-sheet">
+                <div class="sheet-title"><span>生成规格</span><small>PRODUCTION NOTES</small></div>
+                <div class="parameter-grid">
+                  <label><span>市场</span><select id="market-select"><option>日本</option><option>美国</option><option>韩国</option><option>欧洲</option><option>东南亚</option></select></label>
+                  <label><span>语言</span><select id="language-select"><option>日语</option><option>英语</option><option>韩语</option><option>中文</option></select></label>
+                  <label><span>平台</span><select id="platform-select"><option>TikTok</option><option>Facebook</option><option>Instagram</option><option>Google</option></select></label>
+                  <label><span>画幅</span><select id="ratio-select"><option>9:16</option><option>16:9</option><option>1:1</option></select></label>
+                  <label><span>镜头</span><select id="shot-count-select"><option value="2">2 镜</option><option value="3">3 镜</option><option value="4">4 镜</option><option value="5">5 镜</option><option value="6">6 镜</option></select></label>
+                  <label><span>总时长</span><select id="duration-select"><option value="10">10 秒</option><option value="15">15 秒</option><option value="20">20 秒</option><option value="25">25 秒</option><option value="30">30 秒</option></select></label>
+                  <label class="wide"><span>影像风格</span><select id="style-select"><option value="editorial-natural">日系编辑 · 自然实拍</option><option value="ugc">UGC 手机实拍</option><option value="commercial">克制商业广告</option><option value="cinematic">电影叙事</option></select></label>
+                </div>
+                <div class="toggle-row"><span><b>背景音乐</b><small>生成时允许音乐与环境声</small></span><label class="switch"><input id="bgm-toggle" type="checkbox" aria-label="允许生成背景音乐与环境声"><i></i></label></div>
+                <div class="toggle-row"><span><b>画面文字</b><small>允许字幕、利益点和 CTA</small></span><label class="switch"><input id="text-toggle" type="checkbox" aria-label="允许生成字幕、利益点和 CTA"><i></i></label></div>
+                <div class="capability-note" id="capability-note">正在读取本机服务能力……</div>
+              </aside>
+            </form>
+          </section>
+
+          <section class="stage-panel" data-stage-panel="2">
+            <header class="stage-heading compact-heading">
+              <div><p class="eyebrow">02 / STORYBOARD</p><h1>先看证据，再动起来。</h1><p>用 GPT-Image-2 生成关键帧，或上传参考图，再把确认后的视觉依据交给视频模型。</p></div>
+              <div class="stage-heading-actions">
+                <button class="ghost-button" id="generate-storyboard-button" type="button">生成 / 重写分镜</button>
+                <button class="secondary-button" id="generate-all-images-button" type="button">生成全部关键帧</button>
+              </div>
+            </header>
+            <div class="storyboard-toolbar">
+              <span id="storyboard-source">等待 Brief</span>
+              <label class="image-size-control" for="image-size-select">
+                <span>生图尺寸</span>
+                <select id="image-size-select" aria-label="生图尺寸">
+                  <option value="auto">自动 · 跟随视频画幅</option>
+                  <option value="1024x1536">竖图 · 1024 × 1536</option>
+                  <option value="1536x1024">横图 · 1536 × 1024</option>
+                  <option value="1024x1024">方图 · 1024 × 1024</option>
+                </select>
+              </label>
+              <button class="ghost-button" id="reverse-shots-button" type="button">反转顺序</button>
+              <button class="ghost-button" id="reset-storyboard-button" type="button">本地模板</button>
+            </div>
+            <section class="reference-quickbar" id="reference-quickbar" aria-label="当前镜头参考素材快捷上传">
+              <div class="reference-quickbar-copy">
+                <span class="reference-quickbar-icon" aria-hidden="true">＋</span>
+                <div>
+                  <p><strong>参考素材</strong><span id="quick-reference-shot">请先选择一个分镜</span></p>
+                  <small>图片锁定商品与主体，视频参考动作、运镜与节奏</small>
+                </div>
+              </div>
+              <div class="reference-quickbar-counts" aria-live="polite">
+                <span><b>参考图</b><strong id="quick-reference-image-count">0/9</strong></span>
+                <span><b>参考视频</b><strong id="quick-reference-video-count">0/3 · 0s/15s</strong></span>
+              </div>
+              <div class="reference-quickbar-actions">
+                <button class="quick-reference-button image" id="quick-upload-reference-button" type="button">＋ 添加参考图</button>
+                <button class="quick-reference-button video" id="quick-upload-reference-video-button" type="button">＋ 添加参考视频</button>
+                <button class="quick-reference-manage" id="manage-reference-button" type="button">预览与管理 →</button>
+              </div>
+            </section>
+            <div class="storyboard-grid" id="storyboard-grid"></div>
+          </section>
+
+          <section class="stage-panel" data-stage-panel="3">
+            <header class="stage-heading compact-heading">
+              <div><p class="eyebrow">03 / DIRECTION</p><h1>每一镜，只说一件事。</h1><p>选中分镜，在右侧校对场景、运镜、字幕和 Seedance 提示词。</p></div>
+              <span class="stage-stamp small">PROMPT<br>PROOF</span>
+            </header>
+            <div class="direction-ledger" id="direction-ledger"></div>
+          </section>
+
+          <section class="stage-panel" data-stage-panel="4">
+            <header class="stage-heading compact-heading">
+              <div><p class="eyebrow">04 / GENERATION</p><h1>逐镜出片，失败不拖累整条。</h1><p>每个任务独立保存。关闭页面后重新打开，仍可继续查询状态。</p></div>
+              <button class="secondary-button" id="generate-all-button" type="button">生成全部待处理镜头</button>
+            </header>
+            <div class="generation-board" id="generation-board"></div>
+          </section>
+
+          <section class="stage-panel" data-stage-panel="5">
+            <header class="stage-heading compact-heading">
+              <div><p class="eyebrow">05 / TIMELINE</p><h1>把成功片段，排成一条草稿。</h1><p>合成不会覆盖独立片段；后续仍可导入 ChatCut 继续精剪。</p></div>
+              <button class="secondary-button" id="compose-button" type="button">合成当前时间线</button>
+            </header>
+            <div class="final-stage">
+              <div class="final-preview" id="final-preview">
+                <div class="final-empty"><span>FINAL</span><p>所有可用片段会在这里形成可下载草稿。</p></div>
+              </div>
+              <aside class="delivery-note">
+                <p class="eyebrow">DELIVERY NOTE</p>
+                <h3>可编辑性交接</h3>
+                <p>Ad Lab 负责创意、分镜和逐镜生成。正式投放版本建议将独立片段导入 ChatCut，保留字幕、旁白和音乐轨道。</p>
+                <a class="outline-link" href="/chatcut.html">前往 ChatCut 混剪 →</a>
+              </aside>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <aside class="shot-inspector" id="shot-inspector">
+        <div class="inspector-empty" id="inspector-empty"><span>◌</span><strong>选择一个分镜</strong><p>它的场景、运镜、提示词和生成任务会在这里展开。</p></div>
+        <div class="inspector-content" id="inspector-content" hidden>
+          <header class="inspector-head">
+            <div><p class="eyebrow">SHOT INSPECTOR</p><h2 id="inspector-shot-label">SHOT 01</h2></div>
+            <div class="inspector-head-actions">
+              <span class="status-pill" id="inspector-status">草稿</span>
+              <button class="inspector-collapse-button" id="inspector-collapse-button" type="button" aria-controls="shot-inspector" aria-label="收起镜头面板">收起</button>
+            </div>
+          </header>
+          <div class="inspector-preview" id="inspector-preview"></div>
+          <label class="field-label"><span>镜头标题</span><input id="shot-title-input" type="text" maxlength="120"></label>
+          <div class="inspector-pair">
+            <label class="field-label"><span>角色</span><select id="shot-role-select"><option value="hook">开头钩子</option><option value="problem">痛点证据</option><option value="reveal">产品揭晓</option><option value="detail">结构细节</option><option value="proof">上身证明</option><option value="cta">行动召回</option></select></label>
+            <label class="field-label"><span>时长</span><select id="shot-duration-select"><option value="5">5 秒</option><option value="10">10 秒</option><option value="11">11 秒</option><option value="15">15 秒</option></select></label>
+          </div>
+          <label class="field-label"><span>场景</span><textarea id="shot-scene-input" rows="3" maxlength="1200"></textarea></label>
+          <label class="field-label"><span>运镜</span><textarea id="shot-camera-input" rows="2" maxlength="800"></textarea></label>
+          <label class="field-label"><span>图片提示词 <small>GPT-IMAGE KEYFRAME</small></span><textarea id="shot-image-prompt-input" rows="6" maxlength="6000"></textarea></label>
+          <div class="image-generation-control">
+            <label for="image-generation-mode-select">
+              <span>关键帧生图</span>
+              <select id="image-generation-mode-select" aria-label="关键帧生图模式">
+                <option value="auto">自动：有参考图就图生图</option>
+                <option value="reference">强制使用参考图</option>
+                <option value="prompt">纯提示词生图</option>
+              </select>
+            </label>
+            <small id="image-generation-reference-state">正在检查当前镜头参考图</small>
+          </div>
+          <label class="field-label"><span>视频提示词</span><textarea id="shot-prompt-input" rows="8" maxlength="6000"></textarea></label>
+          <label class="field-label"><span>画面文案</span><textarea id="shot-copy-input" rows="2" maxlength="1000"></textarea></label>
+          <section class="reference-workbench" id="reference-workbench" aria-label="多模态参考素材">
+            <div class="reference-workbench-head">
+              <div class="reference-mode-controls">
+                <label for="generation-mode-select"><span>视频参考</span><select id="generation-mode-select"><option value="multimodal">多模态参考</option><option value="prompt-only">纯提示词</option></select></label>
+                <label for="reference-privacy-mode-select"><span>真人处理</span><select id="reference-privacy-mode-select"><option value="product-only">商品隐私模式 · 推荐</option><option value="direct">无人脸原图直传</option></select></label>
+              </div>
+              <small id="reference-overview">合计 0/12 个文件</small>
+            </div>
+            <div class="reference-columns">
+              <article class="reference-column">
+                <header><strong>▣ 参考图</strong><span id="reference-image-count">0/9</span></header>
+                <div class="reference-media-list" id="reference-image-list"></div>
+                <input id="shot-reference-input" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+                <button class="reference-add-button" id="upload-reference-button" type="button"><b>＋</b><span>添加参考图</span></button>
+              </article>
+              <article class="reference-column reference-video-column">
+                <header><strong>▰ 参考视频</strong><span id="reference-video-count">0/3 · 0s/15s</span></header>
+                <div class="reference-media-list" id="reference-video-list"></div>
+                <input id="shot-reference-video-input" type="file" accept="video/mp4,video/quicktime,video/webm" multiple hidden>
+                <button class="reference-add-button" id="upload-reference-video-button" type="button"><b>＋</b><span>添加参考视频</span></button>
+              </article>
+            </div>
+            <small class="reference-hint" id="reference-state">图片锁定商品与主体；视频只参考动作、运镜和节奏。</small>
+          </section>
+          <div class="shot-error" id="shot-error" role="alert" hidden></div>
+          <div class="inspector-actions">
+            <button class="ghost-button" id="save-shot-button" type="button">保存镜头</button>
+            <button class="secondary-button" id="generate-image-button" type="button">生成关键帧</button>
+            <button class="primary-button" id="generate-shot-button" type="button">生成视频</button>
+          </div>
+        </div>
+      </aside>
+      <button class="inspector-reopen-button" id="inspector-reopen-button" type="button" aria-controls="shot-inspector">镜头面板</button>
+    </main>
+
+    <footer class="timeline-bar">
+      <button class="mobile-inspector-button" id="mobile-inspector-button" type="button">镜头设置</button>
+      <div class="progress-cluster">
+        <span>整体进度</span><div class="progress-track"><i id="overall-progress-bar"></i></div><strong id="overall-progress-text">0%</strong>
+      </div>
+      <div class="timeline-track" id="timeline-track"></div>
+      <div class="timeline-actions">
+        <span id="save-state">已同步</span>
+        <button class="primary-button" id="primary-action-button" type="button">填写 Brief</button>
+      </div>
+    </footer>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+    <div class="modal-backdrop" id="modal-backdrop" hidden></div>
+    <dialog class="task-confirm-dialog" id="task-confirm-dialog" aria-labelledby="task-confirm-title" aria-describedby="task-confirm-message">
+      <form method="dialog">
+        <p class="eyebrow" id="task-confirm-eyebrow">TASK REVIEW</p>
+        <h2 id="task-confirm-title">确认生成任务</h2>
+        <p id="task-confirm-message">请确认本次任务范围。</p>
+        <div class="task-confirm-facts" id="task-confirm-facts"></div>
+        <div class="task-confirm-actions">
+          <button class="ghost-button" value="cancel" type="submit">返回检查</button>
+          <button class="primary-button" id="task-confirm-accept" value="confirm" type="submit">确认继续</button>
+        </div>
+      </form>
+    </dialog>
+    <section class="video-player-modal" id="video-player-modal" role="dialog" aria-modal="true" aria-labelledby="video-player-title" hidden>
+      <div class="video-player-shell">
+        <header class="video-player-head">
+          <div>
+            <p class="eyebrow" id="video-player-shot">SHOT PREVIEW</p>
+            <h2 id="video-player-title">生成视频预览</h2>
+          </div>
+          <button class="video-player-close" id="video-player-close" type="button" aria-label="关闭视频播放器">×</button>
+        </header>
+        <div class="video-player-stage">
+          <video id="video-player-video" controls autoplay playsinline preload="metadata"></video>
+          <p class="video-player-error" id="video-player-error" role="status" hidden>浏览器暂时无法播放这个视频地址，请尝试新窗口打开或下载后播放。</p>
+        </div>
+        <footer class="video-player-actions">
+          <span>生成结果已保存，可随时返回播放</span>
+          <a class="ghost-button" id="video-player-open" href="#" target="_blank" rel="noopener">新窗口打开</a>
+          <a class="primary-button" id="video-player-download" href="#" download>下载视频</a>
+        </footer>
+      </div>
+    </section>
+  </body>
+</html>

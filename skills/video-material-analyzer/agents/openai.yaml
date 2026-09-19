@@ -1,0 +1,7 @@
+interface:
+  display_name: "视频素材分析"
+  short_description: "分析上传视频素材、抽帧并写回 Obsidian 素材库"
+  default_prompt: "Use $video-material-analyzer to analyze uploaded video materials and write editing suggestions back to Obsidian."
+
+policy:
+  allow_implicit_invocation: true

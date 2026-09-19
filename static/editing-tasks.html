@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 剪辑任务</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/editing-tasks.js"></script>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>剪辑任务</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="剪辑任务导航">
+        <a class="nav-link" href="/index.html">创作工作台</a>
+        <a class="nav-link operations-nav-link" href="/operations.html">运行中心</a>
+        <a class="nav-link translate-nav-link" href="/prompt-translate.html">提示词翻译</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <a class="nav-link" href="/materials.html">视频素材库</a>
+        <a class="nav-link chatcut-nav-link" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link active" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link" href="/accounts.html" data-auth-admin-only>账号管理</a>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong data-auth-username>检测中</strong></span>
+        <span><b>TASKS</b><strong id="editing-task-total-state">0 个任务</strong></span>
+        <span><b>ROLE</b><strong id="editing-task-role-state" data-auth-role>检测中</strong></span>
+        <button id="editing-task-refresh-btn" class="icon-btn" type="button" title="刷新剪辑任务">↻</button>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="material-page-shell editing-task-page-shell">
+      <section class="material-page-heading">
+        <div>
+          <p class="eyebrow">EDITING TASK FLOW</p>
+          <h1>客户剪辑任务</h1>
+        </div>
+        <a class="outline-action link-action" href="/materials.html">打开视频素材库</a>
+      </section>
+
+      <section id="editing-task-panel" class="material-task-panel editing-task-page-panel" aria-label="客户剪辑任务">
+        <div class="asset-batch-head">
+          <div>
+            <span class="panel-kicker">TASK BOARD</span>
+            <strong>派单与交付</strong>
+            <small id="editing-task-summary">管理员下发任务，客户登录后只看到自己的剪辑要求和交付入口。</small>
+          </div>
+          <button id="editing-task-board-refresh-btn" class="mini-action" type="button">刷新任务</button>
+        </div>
+
+        <div class="material-task-layout editing-task-page-layout">
+          <form id="editing-task-create-form" class="material-task-create-panel">
+            <div class="material-panel-head">
+              <div>
+                <span id="editing-task-form-kicker" class="panel-kicker">ORDER</span>
+                <strong id="editing-task-form-title">视频下单</strong>
+              </div>
+            </div>
+            <div class="material-task-field-grid">
+              <label id="editing-task-assignee-field">
+                <span>客户账号</span>
+                <select id="editing-task-assignee-select" required></select>
+              </label>
+              <label>
+                <span>下单模板</span>
+                <select id="editing-task-template-select">
+                  <option value="custom" selected>自定义需求</option>
+                  <option value="ja15">15 秒日本带货视频</option>
+                  <option value="ja30">30 秒产品混剪</option>
+                  <option value="detail">细节展示视频</option>
+                  <option value="tryon">上身试穿视频</option>
+                  <option value="draft">剪映草稿交付</option>
+                </select>
+              </label>
+              <label>
+                <span>任务标题</span>
+                <input id="editing-task-title-input" type="text" maxlength="140" placeholder="例如：牛仔裤 15 秒日本广告混剪" required>
+              </label>
+              <label>
+                <span>产品名</span>
+                <input id="editing-task-product-input" type="text" maxlength="140" placeholder="产品名/货号">
+              </label>
+              <label>
+                <span>优先级</span>
+                <select id="editing-task-priority-select">
+                  <option value="normal">普通</option>
+                  <option value="high">高优先</option>
+                  <option value="low">低优先</option>
+                </select>
+              </label>
+              <label>
+                <span>截止日期</span>
+                <input id="editing-task-due-input" type="date">
+              </label>
+              <label>
+                <span>素材范围</span>
+                <select id="editing-task-scope-select">
+                  <option value="all" selected>全部素材库</option>
+                </select>
+              </label>
+            </div>
+            <label class="material-task-wide-field">
+              <span>剪辑要求</span>
+              <textarea id="editing-task-brief-input" rows="4" maxlength="4000" placeholder="成片时长、画面方向、需要突出哪些卖点、是否要调用自动混剪 skill。"></textarea>
+            </label>
+            <label class="material-task-wide-field">
+              <span>脚本文案</span>
+              <textarea id="editing-task-script-input" rows="5" maxlength="6000" placeholder="可以粘贴日语文案/口播脚本，后续生成前片段与文案会按这里适配。"></textarea>
+            </label>
+            <div id="editing-task-readiness" class="editing-order-readiness" aria-live="polite"></div>
+            <button id="editing-task-create-btn" class="outline-action green" type="submit">提交视频订单</button>
+          </form>
+
+          <section class="material-task-list-panel">
+            <div id="editing-task-metrics" class="material-task-metrics" aria-label="剪辑任务统计"></div>
+            <div id="editing-task-list" class="material-task-list" aria-live="polite"></div>
+          </section>
+        </div>
+        <p id="editing-task-status" class="material-task-status" role="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <div id="editing-task-toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

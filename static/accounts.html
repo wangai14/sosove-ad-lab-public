@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE 账号管理</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/accounts.js"></script>
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>账号管理</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="账号管理导航">
+        <a class="nav-link" href="/index.html">创作工作台</a>
+        <a class="nav-link operations-nav-link" href="/operations.html">运行中心</a>
+        <a class="nav-link translate-nav-link" href="/prompt-translate.html">提示词翻译</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <a class="nav-link" href="/materials.html">视频素材库</a>
+        <a class="nav-link chatcut-nav-link" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link active" href="/accounts.html" data-auth-admin-only>账号管理</a>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong id="account-current-user" data-auth-username>检测中</strong></span>
+        <span><b>ROLE</b><strong id="account-current-role" data-auth-role>管理员</strong></span>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="account-page-shell">
+      <section class="material-page-heading">
+        <div>
+          <p class="eyebrow">ACCOUNT ACCESS</p>
+          <h1>剪辑登录账号管理</h1>
+        </div>
+        <a class="outline-action link-action" href="/materials.html">回到视频素材库</a>
+      </section>
+
+      <section class="account-layout" aria-label="剪辑账号管理">
+        <div class="account-side-stack">
+          <form id="account-create-form" class="account-create-panel account-add-panel">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">ADD ACCOUNT</span>
+                <strong>添加登录账号</strong>
+              </div>
+            </div>
+            <label>
+              <span>账号</span>
+              <input id="account-new-username" type="text" autocomplete="off" placeholder="editor_01" required>
+            </label>
+            <label>
+              <span>显示名称</span>
+              <input id="account-new-display-name" type="text" autocomplete="name" maxlength="80" placeholder="剪辑姓名" required>
+            </label>
+            <label>
+              <span>权限</span>
+              <select id="account-new-role" aria-label="账号权限">
+                <option value="customer" selected>剪辑</option>
+                <option value="admin">管理员</option>
+              </select>
+            </label>
+            <label>
+              <span>初始密码</span>
+              <input id="account-new-password" type="password" autocomplete="new-password" placeholder="至少 8 位" required>
+            </label>
+            <button id="account-create-btn" class="outline-action account-create-btn" type="submit">创建账号</button>
+            <small class="account-create-tip">只有管理员可以创建账号。</small>
+            <p id="account-create-message" class="auth-message" role="status" aria-live="polite"></p>
+          </form>
+
+          <form id="account-password-form" class="account-create-panel account-security-panel">
+            <div class="material-panel-head">
+              <div>
+                <span class="panel-kicker">ACCOUNT SECURITY</span>
+                <strong>修改当前登录密码</strong>
+              </div>
+            </div>
+            <label>
+              <span>当前密码</span>
+              <input id="account-current-password" type="password" autocomplete="current-password" placeholder="当前登录密码" required>
+            </label>
+            <label>
+              <span>新密码</span>
+              <input id="account-next-password" type="password" autocomplete="new-password" placeholder="至少 8 位" required>
+            </label>
+            <button id="account-password-btn" class="outline-action" type="submit">更新我的密码</button>
+            <p id="account-password-message" class="auth-message" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <section class="account-list-panel" aria-label="已有登录账号">
+          <div class="material-panel-head">
+            <div>
+              <span class="panel-kicker">LOGIN USERS</span>
+              <strong>已有账号</strong>
+            </div>
+            <button id="account-refresh-btn" class="mini-action" type="button">刷新</button>
+          </div>
+          <div id="account-list" class="account-list"></div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

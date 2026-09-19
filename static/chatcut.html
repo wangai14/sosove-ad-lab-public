@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOSOVE ChatCut 混剪</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script defer src="/static/auth-guard.js"></script>
+    <script defer src="/static/chatcut.js"></script>
+  </head>
+  <body class="chatcut-page">
+    <header class="top-nav">
+      <div class="nav-brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>SOSOVE Engine</strong>
+          <small>ChatCut 混剪</small>
+        </div>
+      </div>
+      <nav class="nav-tabs" aria-label="主导航">
+        <a class="nav-link" href="/index.html">创作工作台</a>
+        <a class="nav-link operations-nav-link" href="/operations.html">运行中心</a>
+        <a class="nav-link translate-nav-link" href="/prompt-translate.html">提示词翻译</a>
+        <a class="nav-link copy-library-nav-link" href="/copy-library.html">视频文案库</a>
+        <a class="nav-link" href="/materials.html">视频素材库</a>
+        <a class="nav-link chatcut-nav-link active" href="/chatcut.html">ChatCut 混剪</a>
+        <a class="nav-link" href="/editing-tasks.html">剪辑任务</a>
+        <a class="nav-link" href="/accounts.html" data-auth-admin-only>账号管理</a>
+      </nav>
+      <div class="nav-status">
+        <span><b>USER</b><strong data-auth-username>检测中</strong></span>
+        <span><b>SYNC</b><strong id="chatcut-request-state">0 个任务</strong></span>
+        <span><b>READY</b><strong id="chatcut-ready-state">0 个视频</strong></span>
+        <button id="chatcut-refresh-btn" class="icon-btn" type="button" title="刷新 ChatCut 同步状态">↻</button>
+        <button class="soft-action auth-logout-btn" type="button" data-auth-logout>退出</button>
+      </div>
+    </header>
+
+    <main class="material-page-shell chatcut-page-shell">
+      <section class="material-page-heading">
+        <div class="chatcut-page-heading-copy">
+          <p class="eyebrow">CHATCUT MATERIAL WORKSPACE</p>
+          <h1>ChatCut 素材同步与混剪工作区</h1>
+          <small>面板负责选取已打标签素材并登记任务；Codex 中的 ChatCut 插件负责把 NAS 原始视频导入项目。</small>
+        </div>
+        <a class="outline-action link-action" href="/materials.html">返回视频素材库</a>
+      </section>
+
+      <section class="chatcut-flow" aria-label="ChatCut 工作流程">
+        <span class="active" data-chatcut-step="source"><b>1</b><em>选择素材批次</em></span>
+        <span data-chatcut-step="project"><b>2</b><em>绑定 ChatCut 项目</em></span>
+        <span data-chatcut-step="sync"><b>3</b><em>Codex 执行上传</em></span>
+        <span data-chatcut-step="edit"><b>4</b><em>进入时间线混剪</em></span>
+      </section>
+
+      <section class="chatcut-control-grid" aria-label="ChatCut 同步控制台">
+        <section class="chatcut-sync-console" aria-label="素材同步配置">
+          <div class="chatcut-console-head">
+            <div>
+              <span class="panel-kicker">SYNC PREFLIGHT</span>
+              <strong>Codex 导入预检</strong>
+              <small>只同步当前批次中已完成 AI 分析的原始视频。</small>
+            </div>
+            <span id="chatcut-project-health" class="chatcut-health" data-tone="idle">未绑定项目</span>
+          </div>
+
+          <div class="chatcut-sync-form">
+            <label class="chatcut-project-field">
+              <span>ChatCut 项目链接</span>
+              <input id="material-chatcut-project-url-input" type="url" inputmode="url" autocomplete="off" placeholder="https://app.chatcut.io/zh/editor/...">
+              <small id="chatcut-project-id">粘贴 ChatCut 编辑器地址后自动检查。</small>
+            </label>
+            <label>
+              <span>素材批次</span>
+              <select id="material-chatcut-batch-select" aria-label="选择同步素材批次"></select>
+            </label>
+            <label>
+              <span>产品名 / SKU</span>
+              <input id="material-chatcut-product-key-input" type="text" maxlength="120" autocomplete="off" placeholder="必须与素材产品目录一致">
+            </label>
+            <input id="material-chatcut-sync-scope-select" type="hidden" value="batch">
+          </div>
+
+          <div class="chatcut-preflight-metrics" aria-label="同步预检统计">
+            <span><b id="material-chatcut-scope-count">0</b><em>批次视频</em></span>
+            <span><b id="material-chatcut-ready-count">0</b><em>分析完成</em></span>
+            <span><b id="chatcut-importable-count">0</b><em>本次可上传</em></span>
+            <span><b id="chatcut-existing-count">0</b><em>已在项目</em></span>
+            <span><b id="chatcut-problem-count">0</b><em>需要处理</em></span>
+          </div>
+
+          <div id="chatcut-preflight-result" class="chatcut-preflight-result" data-tone="idle" role="status" aria-live="polite">
+            <strong>等待预检</strong>
+            <small id="material-chatcut-sync-status">请选择批次并填写 ChatCut 项目链接。</small>
+          </div>
+
+          <div class="chatcut-primary-actions">
+            <button id="material-chatcut-sync-refresh-btn" class="outline-action" type="button">重新预检</button>
+            <button id="material-chatcut-sync-submit-btn" class="primary-action" type="button" disabled>创建 Codex 上传任务</button>
+          </div>
+        </section>
+
+        <section class="chatcut-queue-console" aria-label="同步任务队列">
+          <div class="chatcut-console-head">
+            <div>
+              <span class="panel-kicker">SYNC QUEUE</span>
+              <strong>同步任务</strong>
+              <small id="chatcut-queue-summary">暂无同步任务</small>
+            </div>
+            <button id="chatcut-queue-refresh-btn" class="icon-btn" type="button" title="刷新同步状态" aria-label="刷新同步状态">↻</button>
+          </div>
+
+          <div class="chatcut-latest-progress" data-tone="idle">
+            <div>
+              <span id="material-chatcut-last-status">未提交</span>
+              <strong id="chatcut-latest-title">等待创建同步任务</strong>
+              <em id="chatcut-latest-percent">0%</em>
+            </div>
+            <progress id="chatcut-latest-progress" max="100" value="0">0%</progress>
+            <small id="chatcut-latest-detail">提交后会在这里显示真实上传进度。</small>
+          </div>
+
+          <div id="chatcut-executor-state" class="chatcut-executor-state" data-tone="idle" role="status" aria-live="polite">
+            <span>CODEX EXECUTOR</span>
+            <div>
+              <strong id="chatcut-executor-label">等待执行状态</strong>
+              <small id="chatcut-executor-detail">尚未读取 ChatCut 插件心跳。</small>
+            </div>
+          </div>
+
+          <div class="chatcut-queue-tools">
+            <span><b id="material-chatcut-request-count">0</b> 条任务记录</span>
+            <button id="chatcut-copy-task-btn" class="mini-action" type="button" disabled>复制 Codex 执行指令</button>
+          </div>
+          <div id="material-chatcut-sync-list" class="material-chatcut-sync-list chatcut-task-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section class="chatcut-hyperframes-panel" aria-label="HyperFrames 视觉增强">
+        <div class="material-chatcut-embed-head">
+          <div>
+            <span class="panel-kicker">VISUAL ENHANCEMENT</span>
+            <strong>HyperFrames 视觉增强任务包</strong>
+            <small id="chatcut-hyperframes-status">选择需要的动效层，生成可交给 Codex 执行的任务指令。</small>
+          </div>
+          <button id="chatcut-copy-hyperframes-btn" class="mini-action primary" type="button" disabled>复制视觉增强指令</button>
+        </div>
+        <div class="chatcut-hyperframes-options" aria-label="视觉增强类型">
+          <label><input type="checkbox" value="hook" checked><span>0–3秒动态钩子</span></label>
+          <label><input type="checkbox" value="selling-point" checked><span>卖点强调标注</span></label>
+          <label><input type="checkbox" value="cta" checked><span>品牌CTA片尾</span></label>
+          <label><input type="checkbox" value="offer"><span>价格与优惠卡</span></label>
+        </div>
+        <label class="chatcut-hyperframes-offer">
+          <span>已确认优惠信息</span>
+          <input id="chatcut-hyperframes-offer-input" type="text" maxlength="240" placeholder="留空时不会生成价格或库存表达">
+        </label>
+      </section>
+
+      <section class="material-chatcut-embed-panel chatcut-editor-panel" aria-label="ChatCut 在线工作区">
+        <div class="material-chatcut-embed-head">
+          <div>
+            <span class="panel-kicker">EDITABLE TIMELINE</span>
+            <strong>ChatCut 可编辑混剪工作区</strong>
+            <small id="material-chatcut-embed-status">填写项目链接后加载对应编辑器</small>
+          </div>
+          <div class="material-panel-actions">
+            <button id="material-chatcut-embed-reload-btn" class="mini-action" type="button">重新加载</button>
+            <a id="material-chatcut-open-window-btn" class="mini-action primary link-action" href="https://app.chatcut.io/zh/" target="_blank" rel="noopener">打开完整编辑器</a>
+          </div>
+        </div>
+        <iframe id="material-chatcut-embed-frame" title="ChatCut 在线编辑器" src="https://app.chatcut.io/zh/" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+        <small class="material-chatcut-embed-note">同步完成后，原始素材会保留为独立资产，可在时间线上继续调整片段、文案、配音与转场。</small>
+      </section>
+    </main>
+
+    <div id="chatcut-toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
